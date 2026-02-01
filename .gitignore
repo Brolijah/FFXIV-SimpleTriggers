@@ -1,4 +1,6 @@
 .vs/
+.vscode/
 obj/
 bin/
+*.onnx
 *.user
