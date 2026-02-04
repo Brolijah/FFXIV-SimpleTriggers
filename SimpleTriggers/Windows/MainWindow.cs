@@ -168,9 +168,11 @@ public class MainWindow : Window, IDisposable
             AddTrigger(trigRef);
             selectedTriggerIndex = plugin.Configuration.Triggers.Count-1;
             activeTrigger = plugin.Configuration.Triggers.ElementAt(selectedTriggerIndex);
+            if(activeTrigger.expression.Length == 0) { activeTrigger.expression = "New Trigger"; }
         }
+        
         ImGui.SameLine();
-        if(ImGui.Button("Remove"))
+        if(ImGui.Button("Remove") && selectedTriggerIndex != -1)
         {
             RemoveTrigger(selectedTriggerIndex);
             selectedTriggerIndex = -1;
