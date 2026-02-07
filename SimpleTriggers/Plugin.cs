@@ -10,7 +10,6 @@ using System.Diagnostics;
 using SimpleTriggers.Windows;
 using SimpleTriggers.TextToSpeech;
 using System.Threading.Tasks;
-using System;
 
 namespace SimpleTriggers;
 
@@ -24,7 +23,7 @@ public sealed class Plugin : IDalamudPlugin
     private const string CommandPrefixA = "/simpletriggers";
     private const string CommandPrefixB = "/strig";
     public uint MaxLogHistoryCeiling = 10000; // Hard coded limit. Who says? Me says.
-
+    internal bool doLogChatHistory = false; // transient value, must be enabled by the user
     public Configuration Configuration { get; init; }
 
     public readonly WindowSystem WindowSystem = new("Simple Triggers");
@@ -150,7 +149,7 @@ public sealed class Plugin : IDalamudPlugin
                     Task.Run(() => Process.Start("/usr/bin/flite", $"-t \"{message}\""));
                     break;
                 case TextToSpeechType.Kokoro:
-                    StKokoro.Speak(message);
+                    Task.Run(() => StKokoro.Speak(message));
                     break;
                 default:
                     break;

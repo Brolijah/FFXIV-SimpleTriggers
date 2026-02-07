@@ -32,32 +32,38 @@ internal class ChatListener : IDisposable
         {
             foreach(var trig in plugin.Configuration.Triggers)
             {
-                var expression = trig.expression;
-                if(msgStr.Contains(expression, StringComparison.CurrentCultureIgnoreCase))
+                if(trig.enabled)
                 {
-                    if(trig.doResponseTTS && (trig.response.Length > 0))
+                    var expression = trig.expression;
+                    if(msgStr.Contains(expression, StringComparison.CurrentCultureIgnoreCase))
                     {
-                        plugin.SpeakTTS(trig.response);
-                    }
-                    
-                    if(trig.doPlaySound && trig.soundFx > 0)
-                    {
-                        PlaySound.Play(SoundsExtensions.FromIdx(trig.soundFx));
-                    }
+                        if(trig.doResponseTTS && (trig.response.Length > 0))
+                        {
+                            plugin.SpeakTTS(trig.response);
+                        }
+                        
+                        if(trig.doPlaySound && trig.soundFx > 0)
+                        {
+                            PlaySound.Play(SoundsExtensions.FromIdx(trig.soundFx));
+                        }
 
-                    if(trig.doPostInChat && (trig.response.Length > 0))
-                    {
-                        chatGui.Print(trig.response, $"{plugin.Name}", 529);
-                    }
+                        if(trig.doPostInChat && (trig.response.Length > 0))
+                        {
+                            chatGui.Print(trig.response, $"{plugin.Name}", 529);
+                        }
 
+                    }
                 }
             }
         }
 
-        while(plugin.ChatLog.Count >= plugin.Configuration.MaxLogHistory)
+        if(plugin.doLogChatHistory)
         {
-            plugin.ChatLog.Dequeue();
+            while(plugin.ChatLog.Count >= plugin.Configuration.MaxLogHistory)
+            {
+                plugin.ChatLog.Dequeue();
+            }
+            plugin.ChatLog.Enqueue(message);
         }
-        plugin.ChatLog.Enqueue(message);
     }
 }

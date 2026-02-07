@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Linq;
 using System.Numerics;
-using SimpleTriggers.Gui;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
 using Dalamud.Interface;
+using SimpleTriggers.Gui;
 using SimpleTriggers.SeFunctions;
 using SimpleTriggers.TextToSpeech;
 
@@ -101,7 +101,6 @@ public class MainWindow : Window, IDisposable
             trigRef.response = editing.response;
             updateConfig = true;
         }
-
         // Checkbox for Sending Chat Message
         if(ImGui.Checkbox("Send Message?", ref editing.doPostInChat))
         {
@@ -114,6 +113,7 @@ public class MainWindow : Window, IDisposable
             trigRef.doResponseTTS = editing.doResponseTTS;
             updateConfig = true;
         }
+        // If the above is toggled on, renders a button to test the Response TTS
         if(editing.doResponseTTS)
         {
             ImGui.SameLine();
@@ -130,7 +130,6 @@ public class MainWindow : Window, IDisposable
             trigRef.doPlaySound = editing.doPlaySound;
             updateConfig = true;
         }
-
         // If the above is toggled on, renders a drop-down selection for SoundFX and a Test button
         if(editing.doPlaySound)
         {
@@ -158,11 +157,6 @@ public class MainWindow : Window, IDisposable
             }
         }
 
-        if(updateConfig)
-        {
-            plugin.Configuration.Save();
-        }
-
         if(ImGui.Button("Add New"))
         {
             AddTrigger(trigRef);
@@ -170,13 +164,38 @@ public class MainWindow : Window, IDisposable
             activeTrigger = plugin.Configuration.Triggers.ElementAt(selectedTriggerIndex);
             if(activeTrigger.expression.Length == 0) { activeTrigger.expression = "New Trigger"; }
         }
-        
+
         ImGui.SameLine();
         if(ImGui.Button("Remove") && selectedTriggerIndex != -1)
         {
             RemoveTrigger(selectedTriggerIndex);
             selectedTriggerIndex = -1;
             activeTrigger = null;
+        }
+
+        // Shift trigger up and down buttons
+        if(selectedTriggerIndex != -1)
+        {
+            ImGui.SameLine();
+            ImGui.PushFont(UiBuilder.IconFont);
+            if(ImGui.Button($"{FontAwesomeIcon.ArrowUp.ToIconString()}"))
+            {
+                if(selectedTriggerIndex > 0)
+                {
+                    SwapTriggers(selectedTriggerIndex, --selectedTriggerIndex);
+                    activeTrigger = plugin.Configuration.Triggers.ElementAt(selectedTriggerIndex);
+                }
+            }
+            ImGui.SameLine();
+            if(ImGui.Button($"{FontAwesomeIcon.ArrowDown.ToIconString()}"))
+            {
+                if(selectedTriggerIndex < plugin.Configuration.Triggers.Count-1)
+                {
+                    SwapTriggers(selectedTriggerIndex, ++selectedTriggerIndex);
+                    activeTrigger = plugin.Configuration.Triggers.ElementAt(selectedTriggerIndex);
+                }
+            }
+            ImGui.PopFont();
         }
 
         ImGui.AlignTextToFramePadding();
@@ -205,6 +224,12 @@ public class MainWindow : Window, IDisposable
                 ImGui.PushID(id);
                 if(trigFilter.PassFilter(expression))
                 {
+                    if(ImGui.Checkbox("", ref trigger.enabled))
+                    {
+                        updateConfig = true;
+                    }
+                    ImGui.SameLine();
+                    ImGui.AlignTextToFramePadding();
                     if(ImGui.Selectable(expression, selectedTriggerIndex==id)) {
                         selectedTriggerIndex = id;
                         activeTrigger = trigger;
@@ -228,6 +253,11 @@ public class MainWindow : Window, IDisposable
             } // foreach TriggerTexts
 
             if(removeIndex != -1) { RemoveTrigger(removeIndex); }
+        }
+
+        if(updateConfig)
+        {
+            plugin.Configuration.Save();
         }
 
         if(ImGui.IsItemHovered() && ImGui.IsMouseClicked(0))
@@ -297,6 +327,11 @@ public class MainWindow : Window, IDisposable
                 plugin.Configuration.Save();
             }
 
+            if(ImGui.Checkbox("Log Chat History?", ref plugin.doLogChatHistory) && !plugin.doLogChatHistory)
+            {
+                ClearLog(); // clear when unchecked
+            }
+
             ImGui.Text($"How many entries should the chat history keep saved? (Max {plugin.MaxLogHistoryCeiling})");
             ImGui.SetNextItemWidth(120);
             ImGui.DragScalar<uint>("Max Log History##MaxHistoryLength",
@@ -316,7 +351,7 @@ public class MainWindow : Window, IDisposable
             {
                 if(box)
                 {
-                    for(var i = 0; i < 4; ++i)
+                    for(var i = 0; i < Enum.GetNames<TextToSpeechType>().Length; ++i)
                     {
                         if(ImGui.Selectable(TTSProviders.ToName((TextToSpeechType)i)))
                         {
@@ -336,7 +371,7 @@ public class MainWindow : Window, IDisposable
                 {
                     if(box)
                     {
-                        for(var i = 0; i < Enum.GetNames(typeof(KokoroVoiceKind)).Length; ++i)
+                        for(var i = 0; i < Enum.GetNames<KokoroVoiceKind>().Length; ++i)
                         {
                             if(ImGui.Selectable(KokoroVoiceHelper.ToName((KokoroVoiceKind)i)))
                             {
@@ -392,5 +427,13 @@ public class MainWindow : Window, IDisposable
     {
         plugin.Configuration.Triggers.RemoveAt(idx);
         plugin.Configuration.Save();
+    }
+
+    void SwapTriggers(int idx1, int idx2)
+    {
+        var triggers = plugin.Configuration.Triggers;
+        var temp = new TriggerEntry(triggers.ElementAt(idx1));
+        triggers[idx1] = triggers[idx2];
+        triggers[idx2] = temp;
     }
 }

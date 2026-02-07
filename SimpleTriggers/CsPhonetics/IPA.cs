@@ -1,10 +1,12 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Collections.Generic;
 
 namespace SimpleTriggers.Phonetics {
-    public class IPA {
+    public class IPA : IDisposable
+    {
         private Dictionary<string, string> dictionary;
 
         public IPA (string assemblyPath, string ipaDictionary) {
@@ -53,5 +55,9 @@ namespace SimpleTriggers.Phonetics {
             return builder.ToString();
         }
 
+        public void Dispose()
+        {
+            dictionary.Clear();
+        }
     }
 }
