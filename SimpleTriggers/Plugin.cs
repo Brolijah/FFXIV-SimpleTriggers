@@ -30,7 +30,7 @@ public sealed class Plugin : IDalamudPlugin
     //private ConfigWindow ConfigWindow { get; init; }
     private MainWindow MainWindow { get; init; }
     private ChatListener ChatListener { get; init; }
-    private STKokoro StKokoro { get; init; }
+    private ITextToSpeech? TextToSpeech {get; set;}
     internal Queue<SeString> ChatLog { get; init; }
     
     public Plugin()
@@ -40,9 +40,6 @@ public sealed class Plugin : IDalamudPlugin
         if(Configuration.MaxLogHistory > MaxLogHistoryCeiling) { Configuration.MaxLogHistory = MaxLogHistoryCeiling; }
         ChatListener = new ChatListener(this, ChatGui);
         ChatLog = [];
-
-        StKokoro = new STKokoro(PluginInterface.AssemblyLocation.Directory?.FullName!);
-        StKokoro.SetVoice(KokoroVoiceHelper.ToString(Configuration.TTSKokoroVoice));
 
         SwapTTSBackend(Configuration.TTSProvider);
         // You might normally want to embed resources and load them from the manifest stream
@@ -93,7 +90,7 @@ public sealed class Plugin : IDalamudPlugin
         //ConfigWindow.Dispose();
         MainWindow.Dispose();
         ChatListener.Dispose();
-        StKokoro.Dispose();
+        TextToSpeech?.Dispose();
 
         CommandManager.RemoveHandler(CommandPrefixA);
         CommandManager.RemoveHandler(CommandPrefixB);
@@ -122,18 +119,33 @@ public sealed class Plugin : IDalamudPlugin
 
     internal void SwapTTSBackend(TextToSpeechType ttst)
     {
+        TextToSpeech?.Dispose();
+        TextToSpeech = null;
+
         switch (this.Configuration.TTSProvider)
         {
+            case TextToSpeechType.None:
+                //TextToSpeech?.Dispose();
+                //TextToSpeech = null;
+                break;
+            case TextToSpeechType.Kokoro:
+                TextToSpeech = new STKokoro(PluginInterface.AssemblyLocation.Directory?.FullName!);
+                TextToSpeech.SetVoice(KokoroVoiceHelper.ToString(Configuration.TTSKokoroVoice));
+                break;
+            case TextToSpeechType.WindowsSystem:
+                TextToSpeech = new STWindows();
+                break;
             case TextToSpeechType.eSpeakNG:
+            case TextToSpeechType.flite:
                 //tts_espeak.Start();
                 break;
             // TODO: The others...
         }
     }
 
-    internal void SwapKokoroVoice(string voice)
+    internal void SwapTTSVoice(string voice)
     {
-        StKokoro.SetVoice(voice);
+        TextToSpeech?.SetVoice(voice);
     }
     
     internal void SpeakTTS(string message)
@@ -149,7 +161,8 @@ public sealed class Plugin : IDalamudPlugin
                     Task.Run(() => Process.Start("/usr/bin/flite", $"-t \"{message}\""));
                     break;
                 case TextToSpeechType.Kokoro:
-                    Task.Run(() => StKokoro.Speak(message));
+                case TextToSpeechType.WindowsSystem:
+                    Task.Run(() => TextToSpeech?.Speak(message));
                     break;
                 default:
                     break;

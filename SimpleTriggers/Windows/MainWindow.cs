@@ -346,7 +346,7 @@ public class MainWindow : Window, IDisposable
         
         if(ImGui.CollapsingHeader("Text-to-Speech", ImGuiTreeNodeFlags.DefaultOpen))
         {
-            ImGui.SetNextItemWidth(120);
+            ImGui.SetNextItemWidth(140);
             using (var box = ImRaii.Combo("Text-to-Speech Provider", TTSProviders.ToName(plugin.Configuration.TTSProvider))) 
             {
                 if(box)
@@ -377,7 +377,7 @@ public class MainWindow : Window, IDisposable
                             {
                                 plugin.Configuration.TTSKokoroVoice = (KokoroVoiceKind)i;
                                 plugin.Configuration.Save();
-                                plugin.SwapKokoroVoice(KokoroVoiceHelper.ToString((KokoroVoiceKind)i));
+                                plugin.SwapTTSVoice(KokoroVoiceHelper.ToString((KokoroVoiceKind)i));
                             }
                         }
                     }
@@ -392,6 +392,26 @@ public class MainWindow : Window, IDisposable
                 ImGui.PopFont();
                 ImGui.SameLine();
                 ImGui.Text("Test Voice");
+                ImGui.Unindent();
+            }
+
+            if(plugin.Configuration.TTSProvider == TextToSpeechType.WindowsSystem)
+            {
+                if(!OSHelper.IsWindows())
+                {
+                    using(var style = ImRaii.PushColor(ImGuiCol.Text, new Vector4(1.0f, 1.0f, 0, 1.0f)))
+                    {
+                        ImGui.PushFont(UiBuilder.IconFont);
+                        ImGui.Text($"{FontAwesomeIcon.ExclamationTriangle.ToIconString()}");
+                        ImGui.PopFont();
+                        ImGui.SameLine();
+                        ImGui.Text("This TTS option is not supported on your OS!!");
+                    }
+                }
+
+                // TODO - Voice Options 
+
+
                 ImGui.Unindent();
             }
         }

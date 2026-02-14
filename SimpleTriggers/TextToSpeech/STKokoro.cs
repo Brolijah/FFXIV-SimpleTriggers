@@ -8,7 +8,7 @@ using Serilog;
 
 namespace SimpleTriggers.TextToSpeech;
 
-public class STKokoro : IDisposable
+public class STKokoro : ITextToSpeech, IDisposable
 {
     private string assemblyPath {get;init;}
     private IPA ipa {get;init;}
@@ -24,6 +24,11 @@ public class STKokoro : IDisposable
         kv = KokoroVoiceManager.GetVoice("af_bella");
     }
 
+    public void SetVoice(string strVoice)
+    {
+        kv = KokoroVoiceManager.GetVoice(strVoice);
+    }
+
     public void Speak(string message)
     {
         try
@@ -37,12 +42,12 @@ public class STKokoro : IDisposable
         {
             Log.Error($"[Simple Triggers]: Exception caught: {e.Message}");
         }
-        
     }
 
-    public void SetVoice(string strVoice)
+    public bool IsInitialized()
     {
-        kv = KokoroVoiceManager.GetVoice(strVoice);
+        
+        return true;
     }
 
     public void Dispose()

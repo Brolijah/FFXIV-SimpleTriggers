@@ -24,6 +24,12 @@
           "Microsoft.ML.OnnxRuntime": "1.22.0"
         }
       },
+      "System.Speech": {
+        "type": "Direct",
+        "requested": "[11.0.0-preview.1.26104.118, )",
+        "resolved": "11.0.0-preview.1.26104.118",
+        "contentHash": "889uQYHEKqly8GmQOZjA955GOiVQuVP4X/eRrkhBSkrpt9o/HJSMw5eAVufpaJnmWNLzIKJx/lDUzzkLWr98tg=="
+      },
       "KokoroSharp": {
         "type": "Transitive",
         "resolved": "0.6.2",
