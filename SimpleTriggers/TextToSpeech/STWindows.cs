@@ -2,6 +2,8 @@ using System.Speech.Synthesis;
 
 public class STWindows : ITextToSpeech
 {
+    //private float volume = 1.0f;
+    //private float speed = 1.0f;
     private SpeechSynthesizer synth {get; init;}
     public STWindows()
     {
@@ -23,6 +25,12 @@ public class STWindows : ITextToSpeech
     {
         //throw new System.NotImplementedException();
     }
+
+    public void SetVolume(float volume)
+    { }
+
+    public void SetSpeed(float speed)
+    { }
 
     public void Speak(string message)
     {

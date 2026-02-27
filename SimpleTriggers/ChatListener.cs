@@ -49,7 +49,7 @@ internal class ChatListener : IDisposable
 
                         if(trig.doPostInChat && (trig.response.Length > 0))
                         {
-                            chatGui.Print(trig.response, $"{plugin.Name}", 529);
+                            plugin.PrintChatMsg(trig.response);
                         }
 
                     }
@@ -63,7 +63,7 @@ internal class ChatListener : IDisposable
             {
                 plugin.ChatLog.Dequeue();
             }
-            plugin.ChatLog.Enqueue(message);
+            plugin.ChatLog.Enqueue(msgStr);
         }
     }
 }

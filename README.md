@@ -17,7 +17,7 @@ At this point in time, the suggested method for Text-to-Speech responses is to u
 Kokoro may also have slight performance hits but in my personal testing it was barely noticeable (3-5 FPS hitches).
 
 * Commands: `/simpletriggers` or `/strig`
-  * Optional arguments: `enable` or `disable` to activate or deactivate the whole trigger system.
+  * Optional arguments: `enable`/`on` or `disable`/`off` to activate or deactivate the whole trigger system.
 
 ### Images
 ![](https://i.imgur.com/q1UmdHN.png) ![](https://i.imgur.com/Hc9FhW8.png)

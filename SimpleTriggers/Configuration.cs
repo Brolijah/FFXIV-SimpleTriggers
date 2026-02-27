@@ -13,6 +13,8 @@ public class Configuration : IPluginConfiguration
     public uint MaxLogHistory = 500;
     public TextToSpeechType TTSProvider = TextToSpeechType.None;
     public KokoroVoiceKind TTSKokoroVoice = 0;
+    public float TTSSpeed = 1.0f;
+    public float TTSVolume = 100.0f;
     public List<TriggerEntry> Triggers { get; set; } = [];
 
     // The below exists just to make saving less cumbersome

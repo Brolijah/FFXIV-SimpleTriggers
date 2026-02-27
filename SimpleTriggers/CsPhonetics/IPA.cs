@@ -10,7 +10,7 @@ namespace SimpleTriggers.Phonetics {
         private Dictionary<string, string> dictionary;
 
         public IPA (string assemblyPath, string ipaDictionary) {
-            this.dictionary = new Dictionary<string, string>();
+            dictionary = new Dictionary<string, string>(130000); // cheating a bit here
             var resource = Path.Join(assemblyPath, ipaDictionary);
 
             using(var stream = File.Open(resource, FileMode.Open))
@@ -22,17 +22,12 @@ namespace SimpleTriggers.Phonetics {
                     {
                         var second = parts[1].Split(',')[0]; // ugly, only store the first pronunciation 
                         second = second.Replace("/", "");
-                        second = second.Replace("\u02c8", ""); // creates some 'iy' sound
                         second = second.Replace("ɫ", "l");
+                        if(second[0]=='\u02c8') second = second.Remove(0,1); // creates some 'iy' sound
                         dictionary[parts[0].Trim()] = second;
-                        
                     }
                 }
             }
-        }
-
-        public IPA (Dictionary<string, string> dictionary) {
-            this.dictionary = dictionary;
         }
 
         public string EnglishToIPA(string text) {
@@ -42,7 +37,7 @@ namespace SimpleTriggers.Phonetics {
             foreach (var match in words) {
                 var lower = match.ToLower();
                 string? append;
-                if (dictionary.ContainsKey(lower)) {
+                if(dictionary.ContainsKey(lower)) {
                     //builder.Append(dictionary[lower]);
                     append = dictionary[lower];
                 } else {

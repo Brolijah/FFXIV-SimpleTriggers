@@ -286,9 +286,9 @@ public class MainWindow : Window, IDisposable
             {
                 ImGui.PushID(id);
 
-                if(chatFilter.PassFilter(ses.TextValue))
+                if(chatFilter.PassFilter(ses))
                 {
-                    if(ImGui.Selectable(ses.TextValue, selectedChatIndex==id, ImGuiSelectableFlags.DontClosePopups)) // Left-Click action
+                    if(ImGui.Selectable(ses, selectedChatIndex==id, ImGuiSelectableFlags.DontClosePopups)) // Left-Click action
                     {
                         selectedChatIndex = id;
                     }
@@ -298,7 +298,7 @@ public class MainWindow : Window, IDisposable
                         selectedChatIndex = id;
                         if(ImGui.MenuItem("Save to Triggers?"))
                         {
-                            SaveChatMessageToTriggers(ses.TextValue);
+                            SaveChatMessageToTriggers(ses);
                             selectedChatIndex = -1;
                         }
 
@@ -320,6 +320,7 @@ public class MainWindow : Window, IDisposable
 
     private void DrawSettingsTab()
     {
+        // General Options
         if(ImGui.CollapsingHeader("General", ImGuiTreeNodeFlags.DefaultOpen))
         {
             if(ImGui.Checkbox("Enable All Triggers?", ref plugin.Configuration.EnableTriggers))
@@ -344,6 +345,7 @@ public class MainWindow : Window, IDisposable
             ImGui.NewLine();
         }
         
+        // TTS Backend
         if(ImGui.CollapsingHeader("Text-to-Speech", ImGuiTreeNodeFlags.DefaultOpen))
         {
             ImGui.SetNextItemWidth(140);
@@ -363,9 +365,10 @@ public class MainWindow : Window, IDisposable
                 }
             }
 
+            // Voice Options
+            ImGui.Indent();
             if(plugin.Configuration.TTSProvider == TextToSpeechType.Kokoro)
             {
-                ImGui.Indent();
                 ImGui.SetNextItemWidth(160);
                 using (var box = ImRaii.Combo("##KokoroVoiceBox", KokoroVoiceHelper.ToName(plugin.Configuration.TTSKokoroVoice), ImGuiComboFlags.HeightLarge))
                 {
@@ -392,7 +395,6 @@ public class MainWindow : Window, IDisposable
                 ImGui.PopFont();
                 ImGui.SameLine();
                 ImGui.Text("Test Voice");
-                ImGui.Unindent();
             }
 
             if(plugin.Configuration.TTSProvider == TextToSpeechType.WindowsSystem)
@@ -408,12 +410,30 @@ public class MainWindow : Window, IDisposable
                         ImGui.Text("This TTS option is not supported on your OS!!");
                     }
                 }
-
-                // TODO - Voice Options 
-
-
-                ImGui.Unindent();
             }
+
+            // Volume and Speed
+            if(plugin.Configuration.TTSProvider == TextToSpeechType.Kokoro || 
+               plugin.Configuration.TTSProvider == TextToSpeechType.WindowsSystem)
+            {
+                ImGui.SetNextItemWidth(192);
+                ImGui.SliderFloat("Voice Speed", ref plugin.Configuration.TTSSpeed,0.5f, 1.5f,"%.2fx");
+                if(ImGui.IsItemDeactivatedAfterEdit())
+                {
+                    plugin.SetTTSSpeed(plugin.Configuration.TTSSpeed);
+                    plugin.Configuration.Save();
+                }
+
+                ImGui.SetNextItemWidth(192);
+                ImGui.SliderFloat("Voice Volume", ref plugin.Configuration.TTSVolume,1.0f, 100.0f,"%.0f%%");
+                if(ImGui.IsItemDeactivatedAfterEdit())
+                {
+                    plugin.SetTTSVolume(plugin.Configuration.TTSVolume);
+                    plugin.Configuration.Save();
+                }
+            }
+
+            ImGui.Unindent();
         }
     }
 

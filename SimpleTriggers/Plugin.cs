@@ -3,7 +3,6 @@ using Dalamud.IoC;
 using Dalamud.Plugin;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin.Services;
-using Dalamud.Game.Text.SeStringHandling;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Diagnostics;
@@ -31,7 +30,7 @@ public sealed class Plugin : IDalamudPlugin
     private MainWindow MainWindow { get; init; }
     private ChatListener ChatListener { get; init; }
     private ITextToSpeech? TextToSpeech {get; set;}
-    internal Queue<SeString> ChatLog { get; init; }
+    internal Queue<string> ChatLog { get; init; }
     
     public Plugin()
     {
@@ -87,7 +86,6 @@ public sealed class Plugin : IDalamudPlugin
         
         WindowSystem.RemoveAllWindows();
 
-        //ConfigWindow.Dispose();
         MainWindow.Dispose();
         ChatListener.Dispose();
         TextToSpeech?.Dispose();
@@ -98,17 +96,20 @@ public sealed class Plugin : IDalamudPlugin
 
     private void OnCommand(string command, string args)
     {
-        // In response to the slash command, toggle the display status of our main ui
         var argArr = args.Trim().Split(" ");
         switch (argArr[0])
         {
+            case "on":
             case "enable":
                 Configuration.EnableTriggers = true;
                 Configuration.Save();
+                PrintChatMsg("All triggers are enabled.");
             break;
+            case "off":
             case "disable":
                 Configuration.EnableTriggers = false;
                 Configuration.Save();
+                PrintChatMsg("All triggers are disabled.");
             break;
 
             default:
@@ -122,7 +123,7 @@ public sealed class Plugin : IDalamudPlugin
         TextToSpeech?.Dispose();
         TextToSpeech = null;
 
-        switch (this.Configuration.TTSProvider)
+        switch (Configuration.TTSProvider)
         {
             case TextToSpeechType.None:
                 //TextToSpeech?.Dispose();
@@ -131,9 +132,13 @@ public sealed class Plugin : IDalamudPlugin
             case TextToSpeechType.Kokoro:
                 TextToSpeech = new STKokoro(PluginInterface.AssemblyLocation.Directory?.FullName!);
                 TextToSpeech.SetVoice(KokoroVoiceHelper.ToString(Configuration.TTSKokoroVoice));
+                TextToSpeech.SetSpeed(Configuration.TTSSpeed);
+                TextToSpeech.SetVolume(Configuration.TTSVolume);
                 break;
             case TextToSpeechType.WindowsSystem:
                 TextToSpeech = new STWindows();
+                TextToSpeech.SetSpeed(Configuration.TTSSpeed);
+                TextToSpeech.SetVolume(Configuration.TTSVolume);
                 break;
             case TextToSpeechType.eSpeakNG:
             case TextToSpeechType.flite:
@@ -141,6 +146,11 @@ public sealed class Plugin : IDalamudPlugin
                 break;
             // TODO: The others...
         }
+    }
+
+    internal void PrintChatMsg(string message)
+    {
+        ChatGui.Print(message, $"{Name}", 529);
     }
 
     internal void SwapTTSVoice(string voice)
@@ -152,7 +162,7 @@ public sealed class Plugin : IDalamudPlugin
     {
         if(message.Length > 0)
         {
-            switch (this.Configuration.TTSProvider)
+            switch (Configuration.TTSProvider)
             {
                 case TextToSpeechType.eSpeakNG:
                     Task.Run(() => Process.Start("/usr/bin/espeak-ng",$"\"{message}\""));
@@ -169,6 +179,9 @@ public sealed class Plugin : IDalamudPlugin
             }
         }
     }
+
+    internal void SetTTSVolume(float volume) => TextToSpeech?.SetVolume(volume);
+    internal void SetTTSSpeed(float speed) => TextToSpeech?.SetSpeed(speed);
 
     public void ToggleConfigUi() => MainWindow.Toggle();
     public void ToggleMainUi() => MainWindow.Toggle();

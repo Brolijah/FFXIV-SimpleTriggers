@@ -5,15 +5,20 @@ using KokoroSharp.Core;
 using KokoroSharp.Processing;
 using SimpleTriggers.Phonetics;
 using Serilog;
+using System.Threading.Tasks;
+using System.Threading;
 
 namespace SimpleTriggers.TextToSpeech;
 
 public class STKokoro : ITextToSpeech, IDisposable
 {
     private string assemblyPath {get;init;}
-    private IPA ipa {get;init;}
-    private KokoroTTS tts {get;init;}
-    private KokoroVoice kv {get;set;}
+    private float volume = 1.0f;
+    private float speed = 1.0f;
+    private IPA ipa;
+    private KokoroTTS tts;
+    private KokoroVoice kv;
+    private KokoroPlayback kp;
     public STKokoro(string path)
     {
         assemblyPath = path;
@@ -22,11 +27,23 @@ public class STKokoro : ITextToSpeech, IDisposable
         Tokenizer.eSpeakNGPath = Path.Join(assemblyPath, "espeak");
         KokoroVoiceManager.LoadVoicesFromPath(Path.Join(assemblyPath,"voices"));
         kv = KokoroVoiceManager.GetVoice("af_bella");
+        kp = new KokoroPlayback();
+        kp.Enqueue([]);
     }
 
     public void SetVoice(string strVoice)
     {
         kv = KokoroVoiceManager.GetVoice(strVoice);
+    }
+
+    public void SetVolume(float volume)
+    {
+        this.volume = volume/100.0f;
+    }
+
+    public void SetSpeed(float speed)
+    {
+        this.speed = speed;
     }
 
     public void Speak(string message)
@@ -35,9 +52,10 @@ public class STKokoro : ITextToSpeech, IDisposable
         {
             var phonemes = ipa.EnglishToIPA(message);
             var tokens = Tokenizer.TokenizePhonemes(phonemes.ToCharArray());
-            tts.Speak_Phonemes(message, tokens, kv, default, true);
-            //tts.StopPlayback();
-            //tts.SpeakFast(message, kv);
+            kp.StopPlayback();
+            kp.SetVolume(volume);
+            tts.EnqueueJob(KokoroJob.Create(tokens, kv, speed, kp.Enqueue));
+            //Task.Run(() => {Thread.Sleep(400); kp.SetVolume(volume);}); // lol... no (please)
         } catch (Exception e)
         {
             Log.Error($"[Simple Triggers]: Exception caught: {e.Message}");
@@ -52,6 +70,8 @@ public class STKokoro : ITextToSpeech, IDisposable
 
     public void Dispose()
     {
+        ipa.Dispose();
+        kp.Dispose();
         tts.Dispose();
     }
 }
