@@ -3,6 +3,7 @@ using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Collections.Generic;
+using Serilog;
 
 namespace SimpleTriggers.Phonetics {
     public class IPA : IDisposable
@@ -20,9 +21,13 @@ namespace SimpleTriggers.Phonetics {
                     var parts = line.Split('\t');
                     if (parts.Length >= 2)
                     {
+                        // This cleans up some things that Kokoro doesn't support that may be part of the IPA standard.
+                        // I don't really have a good way of finding what is and isn't supported other than I find
+                        // them as they pop up. e.g. if no sound plays when you try to test a phrase, check /xllog
                         var second = parts[1].Split(',')[0]; // ugly, only store the first pronunciation 
                         second = second.Replace("/", "");
                         second = second.Replace("ɫ", "l");
+                        second = second.Replace("ɝ", "ɜː");
                         if(second[0]=='\u02c8') second = second.Remove(0,1); // creates some 'iy' sound
                         dictionary[parts[0].Trim()] = second;
                     }
@@ -38,10 +43,8 @@ namespace SimpleTriggers.Phonetics {
                 var lower = match.ToLower();
                 string? append;
                 if(dictionary.ContainsKey(lower)) {
-                    //builder.Append(dictionary[lower]);
                     append = dictionary[lower];
                 } else {
-                    //builder.Append(lower);
                     append = lower;
                 }
                 builder.Append(append);

@@ -417,7 +417,7 @@ public class MainWindow : Window, IDisposable
                plugin.Configuration.TTSProvider == TextToSpeechType.WindowsSystem)
             {
                 ImGui.SetNextItemWidth(192);
-                ImGui.SliderFloat("Voice Speed", ref plugin.Configuration.TTSSpeed,0.5f, 1.5f,"%.2fx");
+                ImGui.SliderFloat("Voice Speed", ref plugin.Configuration.TTSSpeed,0.5f, 1.5f,"%.1fx");
                 if(ImGui.IsItemDeactivatedAfterEdit())
                 {
                     plugin.SetTTSSpeed(plugin.Configuration.TTSSpeed);
