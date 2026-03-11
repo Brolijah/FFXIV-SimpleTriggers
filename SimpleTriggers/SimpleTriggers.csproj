@@ -1,10 +1,10 @@
 ﻿
-<Project Sdk="Dalamud.NET.Sdk/14.0.1">
+<Project Sdk="Dalamud.NET.Sdk/14.0.2">
   <PropertyGroup>
     <Version>0.1.0</Version>
     <InformationalVersion>0.1.0-rc1</InformationalVersion>
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
-    <PackageProjectUrl>https://github.com/Brolijah/DalamudTestBench</PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/Brolijah/SimpleTriggers</PackageProjectUrl>
     <PackageLicenseExpression>AGPL-3.0-or-later</PackageLicenseExpression>
     <IsPackable>false</IsPackable>
     <TargetFramework>net10.0</TargetFramework>
@@ -23,4 +23,16 @@
     <PackageReference Include="KokoroSharp.CPU" Version="0.6.5" />
     <PackageReference Include="System.Speech" Version="11.0.0-preview.1.26104.118" />
   </ItemGroup>
+
+    <Target Name="_ExcludeUnsupportedRuntimes" BeforeTargets="_CopyFilesMarkedCopyLocal">
+      <ItemGroup>
+        <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)" Condition="$([System.String]::new('%(ReferenceCopyLocalPaths.RuntimeIdentifier)').StartsWith('android'))" />
+        <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)" Condition="$([System.String]::new('%(ReferenceCopyLocalPaths.RuntimeIdentifier)').StartsWith('ios'))" />
+        <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)" Condition="$([System.String]::new('%(ReferenceCopyLocalPaths.RuntimeIdentifier)').StartsWith('osx'))" />
+        <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)" Condition="$([System.String]::new('%(ReferenceCopyLocalPaths.RuntimeIdentifier)').StartsWith('maccatalyst'))" />
+        <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)" Condition="$([System.String]::new('%(ReferenceCopyLocalPaths.RuntimeIdentifier)').EndsWith('-arm'))" />
+        <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)" Condition="$([System.String]::new('%(ReferenceCopyLocalPaths.RuntimeIdentifier)').EndsWith('-arm64'))" />
+        <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)" Condition="$([System.String]::new('%(ReferenceCopyLocalPaths.RuntimeIdentifier)').EndsWith('-x86'))" />
+      </ItemGroup>
+  </Target>
 </Project>
