@@ -55,7 +55,10 @@ public static class STKokoroUI
             plugin.Configuration.Save();
         }
 
-        ImGui.Checkbox("Use espeak for phonemes?", ref plugin.Configuration.KokoroUseEspeak);
+        if(ImGui.Checkbox("Use espeak for phonemes?", ref plugin.Configuration.KokoroUseEspeak))
+        {
+            plugin.Configuration.Save();
+        }
         ImGui.SameLine();
         ImGui.PushFont(UiBuilder.IconFont);
         ImGui.Text($"{FontAwesomeIcon.ExclamationCircle.ToIconString()}");
