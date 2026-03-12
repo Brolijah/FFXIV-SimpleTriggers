@@ -87,7 +87,8 @@ public class MainWindow : Window, IDisposable
         ImGui.Text("Text to Match:   ");
         ImGui.SameLine();
         // We must not allow the expression to be blank
-        if(ImGui.InputText("##ExpressionTextBox", ref editing.expression, 128, ImGuiInputTextFlags.EnterReturnsTrue))
+        if(ImGui.InputText("##ExpressionTextBox", ref editing.expression, 128, ImGuiInputTextFlags.EnterReturnsTrue)
+           || ImGui.IsItemDeactivatedAfterEdit())
         {
             if(editing.expression.Length != 0) { trigRef.expression = editing.expression; }
             updateConfig = true;
@@ -96,7 +97,8 @@ public class MainWindow : Window, IDisposable
         ImGui.AlignTextToFramePadding();
         ImGui.Text("Response Text: ");
         ImGui.SameLine();
-        if(ImGui.InputText("##ResponseTextBox", ref editing.response, 128, ImGuiInputTextFlags.EnterReturnsTrue))
+        if(ImGui.InputText("##ResponseTextBox", ref editing.response, 128, ImGuiInputTextFlags.EnterReturnsTrue)
+           || ImGui.IsItemDeactivatedAfterEdit())
         {
             trigRef.response = editing.response;
             updateConfig = true;

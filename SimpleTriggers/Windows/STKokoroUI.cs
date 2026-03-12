@@ -47,12 +47,19 @@ public static class STKokoroUI
             plugin.Configuration.Save();
         }
 
-        ImGui.SetNextItemWidth(192);
-        ImGui.SliderFloat("Voice Volume", ref plugin.Configuration.TTSVolume,1.0f, 100.0f,"%.0f%%");
-        if(ImGui.IsItemDeactivatedAfterEdit())
+        // Note: Internally, KokoroSharp uses NAudio's WaveOutEvent. Which when you set the volume, it will actually
+        // change the volume of the WHOLE application, if in Windows. But in Wine this behaves differently and 
+        // only changes the volume of the TTS. A work around to allow windows users control of Kokoro's Volume
+        // will probably require managing my own audio backend which I don't intend on doing yet.
+        if(!OSHelper.IsWindows())
         {
-            plugin.SetTTSVolume(plugin.Configuration.TTSVolume);
-            plugin.Configuration.Save();
+            ImGui.SetNextItemWidth(192);
+            ImGui.SliderFloat("Voice Volume", ref plugin.Configuration.TTSVolume,1.0f, 100.0f,"%.0f%%");
+            if(ImGui.IsItemDeactivatedAfterEdit())
+            {
+                plugin.SetTTSVolume(plugin.Configuration.TTSVolume);
+                plugin.Configuration.Save();
+            }
         }
 
         if(ImGui.Checkbox("Use espeak for phonemes?", ref plugin.Configuration.KokoroUseEspeak))

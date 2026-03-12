@@ -3,6 +3,8 @@ using System.Numerics;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface;
+using System.Speech.Synthesis;
+using System.Speech.AudioFormat;
 
 namespace SimpleTriggers.Windows;
 
@@ -20,21 +22,23 @@ public static class STWinSpeechUI
                 ImGui.SameLine();
                 ImGui.Text("This TTS option is not supported on your OS!!");
             }
+            return; // We don't want the below to run if this isn't windows.
         }
 
-        /* TODO: Kokoro equivalent, needs to be reworked for Windows Speech System
         ImGui.SetNextItemWidth(160);
-        using (var box = ImRaii.Combo("##KokoroVoiceBox", KokoroVoiceHelper.ToName(plugin.Configuration.TTSKokoroVoice), ImGuiComboFlags.HeightLarge))
+        using (var box = ImRaii.Combo("##WinSpeechVoiceBox", plugin.Configuration.WinSpeechVoice, ImGuiComboFlags.HeightLarge))
         {
+            var synth = new SpeechSynthesizer();
             if(box)
             {
-                for(var i = 0; i < Enum.GetNames<KokoroVoiceKind>().Length; ++i)
+                foreach(InstalledVoice voice in synth.GetInstalledVoices())
                 {
-                    if(ImGui.Selectable(KokoroVoiceHelper.ToName((KokoroVoiceKind)i)))
+                    var info = voice.VoiceInfo;
+                    if(ImGui.Selectable(info.Name))
                     {
-                        plugin.Configuration.TTSKokoroVoice = (KokoroVoiceKind)i;
+                        plugin.Configuration.WinSpeechVoice = info.Name;
                         plugin.Configuration.Save();
-                        plugin.SetTTSVoice(KokoroVoiceHelper.ToString((KokoroVoiceKind)i));
+                        plugin.SetTTSVoice(info.Name);
                     }
                 }
             }
@@ -44,12 +48,11 @@ public static class STWinSpeechUI
         ImGui.PushFont(UiBuilder.IconFont);
         if(ImGui.Button($"{FontAwesomeIcon.Play.ToIconString()}"))
         {
-            plugin.SpeakTTS("This is a test of the Kokoro voice.");
+            plugin.SpeakTTS("This is a test of the Windows System voice.");
         }
         ImGui.PopFont();
         ImGui.SameLine();
         ImGui.Text("Test Voice");
-        */
 
         // Volume and Speed
         ImGui.SetNextItemWidth(192);

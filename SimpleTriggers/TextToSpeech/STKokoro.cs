@@ -9,15 +9,17 @@ using System.Threading.Tasks;
 using System.Diagnostics.CodeAnalysis;
 using System.Security.Cryptography;
 using System.Net.Http;
+using System.Threading;
 
 namespace SimpleTriggers.TextToSpeech;
 
-public class STKokoro : ITextToSpeech, IDisposable
+public class STKokoro : ITextToSpeech
 {
     // sha256 = c1610a859f3bdea01107e73e50100685af38fff88f5cd8e5c56df109ec880204
     private const string ModelUri = "https://github.com/taylorchu/kokoro-onnx/releases/download/v0.2.0/kokoro-quant.onnx";
     private readonly string configPath;
     private readonly Task<KokoroTTS> ttsTask;
+    private readonly CancellationTokenSource cts = new();
     private float volume = 1.0f;
     private float speed = 1.0f;
     private IPA ipa;
@@ -43,7 +45,7 @@ public class STKokoro : ITextToSpeech, IDisposable
         var path = GetModelPath();
         if(Path.Exists(path)) // if the model file exists on disk
         {
-            var hash = SHA256.HashData(await File.ReadAllBytesAsync(path));
+            var hash = SHA256.HashData(await File.ReadAllBytesAsync(path, cts.Token));
             if(!(Convert.ToHexStringLower(hash) == "c1610a859f3bdea01107e73e50100685af38fff88f5cd8e5c56df109ec880204"))
             {
                 // mismatch, flag for download
@@ -57,12 +59,12 @@ public class STKokoro : ITextToSpeech, IDisposable
         {
             Log.Debug("[Simple Triggers]: Downloading KokoroTTS model...");
             using var client = new HttpClient();
-            using var response = await client.GetAsync(ModelUri, HttpCompletionOption.ResponseHeadersRead);
-            using var responseStream = await response.Content.ReadAsStreamAsync();
+            using var response = await client.GetAsync(ModelUri, HttpCompletionOption.ResponseHeadersRead, cts.Token);
+            using var responseStream = await response.Content.ReadAsStreamAsync(cts.Token);
             using(var fileStream = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None))
             {
-                await responseStream.CopyToAsync(fileStream);
-                await fileStream.FlushAsync();
+                await responseStream.CopyToAsync(fileStream, cts.Token);
+                await fileStream.FlushAsync(cts.Token);
             }
             Log.Debug("[Simple Triggers]: Kokoro model download completed");
         }
@@ -94,12 +96,15 @@ public class STKokoro : ITextToSpeech, IDisposable
     public void SetVolume(float volume)
     {
         this.volume = volume/100.0f;
-        try
+        if(!OSHelper.IsWindows()) // causes undesirable effects in Windows
         {
-            kp.SetVolume(this.volume);
-        } catch (Exception e)
-        {
-            Log.Error($"[Simple Triggers]: STKokoro.SetVolume(): Exception caught: {e.Message}");
+            try
+            {
+                kp.SetVolume(this.volume);
+            } catch (Exception e)
+            {
+                Log.Error($"[Simple Triggers]: STKokoro.SetVolume(): Exception caught: {e.Message}");
+            }
         }
     }
 
@@ -120,7 +125,6 @@ public class STKokoro : ITextToSpeech, IDisposable
 
                 lastJob?.Cancel();
                 kp.StopPlayback();
-                kp.SetVolume(volume);
                 lastJob = tts.EnqueueJob(KokoroJob.Create(tokens, kv, speed, kp.Enqueue));
             } catch (Exception e)
             {
@@ -138,6 +142,7 @@ public class STKokoro : ITextToSpeech, IDisposable
 
     public void Dispose()
     {
+        cts.Cancel();
         ipa.Dispose();
         kp.Dispose();
         if(TryGetKokoroTTS(out var tts))

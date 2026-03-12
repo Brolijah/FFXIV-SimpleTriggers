@@ -128,6 +128,7 @@ public sealed class Plugin : IDalamudPlugin
                 break;
             case TextToSpeechType.WindowsSystem:
                 TextToSpeech = new STWinSpeech();
+                TextToSpeech.SetVoice(Configuration.WinSpeechVoice);
                 TextToSpeech.SetSpeed(Configuration.TTSSpeed);
                 TextToSpeech.SetVolume(Configuration.TTSVolume);
                 break;

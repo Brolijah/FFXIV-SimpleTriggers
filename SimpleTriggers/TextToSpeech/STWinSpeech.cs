@@ -1,5 +1,6 @@
 using System;
 using System.Speech.Synthesis;
+using Serilog;
 
 public class STWinSpeech : ITextToSpeech
 {
@@ -11,7 +12,16 @@ public class STWinSpeech : ITextToSpeech
     }
 
     public void SetVoice(string voice)
-    { }
+    {
+        try
+        {
+            synth.SelectVoice(voice);
+        } catch (Exception e)
+        {
+            Log.Error($"[Simple Triggers]: STWinSpeech.SetVoice(): Exception caught: {e.Message}");
+            Log.Error($"[Simple Triggers]: STWinSpeech.SetVoice(): Voice \"{voice}\" not found.");
+        }
+    }
 
     public void SetVolume(float volume)
     {
@@ -23,7 +33,13 @@ public class STWinSpeech : ITextToSpeech
     
     public void Speak(string message, bool extra)
     {
-        synth.SpeakAsync(message);
+        try
+        {
+            synth.SpeakAsync(message);
+        } catch (Exception e)
+        {
+            Log.Error($"[Simple Triggers]: STWinSpeech.Speak(): Exception caught: {e.Message}");
+        }
     }
 
     public bool IsInitialized()

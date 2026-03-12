@@ -16,6 +16,7 @@ public class Configuration : IPluginConfiguration
     public bool KokoroUseEspeak = false;
     public float TTSSpeed = 1.0f;
     public float TTSVolume = 100.0f;
+    public string WinSpeechVoice = "None";
     public List<TriggerEntry> Triggers { get; set; } = [];
 
     // The below exists just to make saving less cumbersome
