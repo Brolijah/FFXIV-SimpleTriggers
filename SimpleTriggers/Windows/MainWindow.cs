@@ -238,7 +238,7 @@ public class MainWindow : Window, IDisposable
                 {
                     // Greater than 1 because we don't want to put any categories above the "Default" group (index 0)
                     var index = plugin.Configuration.TriggerTree.GetIndexOfCategory(state.activeCategory.Name);
-                    if(state.trigListIndex > 1)
+                    if(index > 1)
                     {
                         plugin.Configuration.TriggerTree.SwapCategories(index, --index);
                         state.activeCategory = plugin.Configuration.TriggerTree.ElementAt(index);
