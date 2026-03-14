@@ -28,33 +28,42 @@ internal class ChatListener : IDisposable
         // Ignore messages sent from the plugin
         var msgStr = message.ToString();
         if(msgStr.StartsWith($"[{plugin.Name}]")) { return; }
+        
         if(plugin.Configuration.EnableTriggers)
         {
-            foreach(var trig in plugin.Configuration.Triggers)
+            foreach(var category in plugin.Configuration.TriggerTree)
             {
-                if(trig.enabled)
+                if(category.enabled)
                 {
-                    var expression = trig.expression;
-                    if(msgStr.Contains(expression, StringComparison.CurrentCultureIgnoreCase))
+                    foreach(var trig in category.Triggers)
                     {
-                        if(trig.doResponseTTS && (trig.response.Length > 0))
+                        if(trig.enabled)
                         {
-                            plugin.SpeakTTS(trig.response);
-                        }
-                        
-                        if(trig.doPlaySound && trig.soundFx > 0)
-                        {
-                            PlaySound.Play(SoundsExtensions.FromIdx(trig.soundFx));
-                        }
+                            var expression = trig.expression;
+                            if(msgStr.Contains(expression, StringComparison.CurrentCultureIgnoreCase))
+                            {
+                                if(trig.doResponseTTS && (trig.response.Length > 0))
+                                {
+                                    plugin.SpeakTTS(trig.response);
+                                }
+                                
+                                if(trig.doPlaySound && trig.soundFx > 0)
+                                {
+                                    PlaySound.Play(SoundsExtensions.FromIdx(trig.soundFx));
+                                }
 
-                        if(trig.doPostInChat && (trig.response.Length > 0))
-                        {
-                            plugin.PrintChatMsg(trig.response);
-                        }
+                                if(trig.doPostInChat && (trig.response.Length > 0))
+                                {
+                                    plugin.PrintChatMsg(trig.response);
+                                }
 
+                            }
+                        }
                     }
                 }
+                
             }
+            
         }
 
         if(plugin.doLogChatHistory)

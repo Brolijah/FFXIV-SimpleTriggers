@@ -1,4 +1,4 @@
-namespace SimpleTriggers;
+namespace SimpleTriggers.Triggers;
 
 public class TriggerEntry
 {
@@ -12,6 +12,11 @@ public class TriggerEntry
 
     public TriggerEntry()
     { }
+
+    public TriggerEntry(string expression)
+    {
+        this.expression = expression;
+    }
 
     public TriggerEntry(TriggerEntry te)
     {

@@ -16,9 +16,9 @@ public class STWinSpeech : ITextToSpeech
         try
         {
             synth.SelectVoice(voice);
-        } catch (Exception)
+        } catch (Exception e)
         {
-            Log.Warning($"[Simple Triggers]: STWinSpeech.SetVoice(): Voice \"{voice}\" not found.");
+            Log.Warning(e, $"Voice \"{voice}\" not found.");
         }
     }
 
@@ -37,7 +37,7 @@ public class STWinSpeech : ITextToSpeech
             synth.SpeakAsync(message);
         } catch (Exception e)
         {
-            Log.Error($"[Simple Triggers]: STWinSpeech.Speak(): Exception caught: {e.Message}");
+            Log.Error(e, "STWinSpeech.Speak(): Exception caught:");
         }
     }
 

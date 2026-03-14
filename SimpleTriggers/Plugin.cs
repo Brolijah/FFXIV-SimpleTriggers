@@ -7,8 +7,10 @@ using System.Collections.Generic;
 using System.Reflection;
 using SimpleTriggers.Windows;
 using SimpleTriggers.TextToSpeech;
+using SimpleTriggers.Triggers;
 using System.Threading.Tasks;
-using System;
+using System.Linq;
+using Serilog;
 
 namespace SimpleTriggers;
 
@@ -21,6 +23,7 @@ public sealed class Plugin : IDalamudPlugin
     public string Name => "Simple Triggers";
     private const string CommandPrefixA = "/simpletriggers";
     private const string CommandPrefixB = "/strig";
+    internal readonly string DefaultCategoryName = "Default";
     internal uint MaxLogHistoryCeiling = 10000; // Hard coded limit. Who says? Me says.
     internal bool doLogChatHistory = false; // transient value, must be enabled by the user
     public Configuration Configuration { get; init; }

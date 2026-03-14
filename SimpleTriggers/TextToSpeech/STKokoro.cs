@@ -51,14 +51,14 @@ public class STKokoro : ITextToSpeech
                 {
                     // mismatch, flag for download
                     File.Delete(path);
-                    Log.Debug("[Simple Triggers]: KokoroTTS model mismatched hash, redownloading");
+                    Log.Information("KokoroTTS model mismatched hash, redownloading");
                     download = true;
-                } else { Log.Debug("[Simple Triggers]: KokoroTTS model already on disk. Using existing file."); }
+                } else { Log.Information("KokoroTTS model already on disk. Using existing file."); }
             } else { download = true; }
 
             if(download)
             {
-                Log.Debug("[Simple Triggers]: Downloading KokoroTTS model...");
+                Log.Information("Downloading KokoroTTS model...");
                 using var client = new HttpClient();
                 using var response = await client.GetAsync(ModelUri, HttpCompletionOption.ResponseHeadersRead, cts.Token);
                 using var responseStream = await response.Content.ReadAsStreamAsync(cts.Token);
@@ -67,11 +67,11 @@ public class STKokoro : ITextToSpeech
                     await responseStream.CopyToAsync(fileStream, cts.Token);
                     await fileStream.FlushAsync(cts.Token);
                 }
-                Log.Debug("[Simple Triggers]: Kokoro model download completed");
+                Log.Information("Kokoro model download completed");
             }
         } catch (Exception e)
         {
-            Log.Error($"[Simple Triggers]: Exception caught: {e.Message}");
+            Log.Error(e, "STKokoro.LoadModelAsync(): Exception caught:");
             return null;
         }
 
@@ -108,7 +108,7 @@ public class STKokoro : ITextToSpeech
                 kp.SetVolume(this.volume);
             } catch (Exception e)
             {
-                Log.Warning($"[Simple Triggers]: STKokoro.SetVolume(): Exception caught: {e.Message}");
+                Log.Warning(e,"Exception caught:");
             }
         }
     }
@@ -133,10 +133,10 @@ public class STKokoro : ITextToSpeech
                 lastJob = tts.EnqueueJob(KokoroJob.Create(tokens, kv, speed, kp.Enqueue));
             } catch (Exception e)
             {
-                Log.Error($"[Simple Triggers]: STKokoro.Speak(): Exception caught: {e.Message}");
+                Log.Error(e, "STKokoro.Speak(): Exception caught: ");
             }
         } else {
-            Log.Warning("[Simple Triggers]: STKokoro.Speak(): Attempted TTS before model loaded.");
+            Log.Warning("Attempted TTS before model loaded.");
         }
     }
 

@@ -21,6 +21,7 @@ Message history is never saved outside of the plugin running and is lost when th
 
 
 ## Known Issues
+* With Kokoro, if espeak is disabled, it only supports speaking in English. I would like to remedy this in the future by loading other phonetic dictionaries. Or, alternatively, if KokoroSharp removes its dependency on espeak, it *may* just work in a future update.
 * Kokoro may cause minor hitching. In my testing, this was near negligible (3-5 FPS). It seems to be related to playing the sound wave. Needs further investigation.
 
 ## Credits
