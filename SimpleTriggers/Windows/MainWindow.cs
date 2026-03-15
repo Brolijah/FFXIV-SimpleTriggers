@@ -18,7 +18,7 @@ internal struct SelectionState
 {
     public int chatIndex = -1; // used to track the selected index in Chat History
     public int trigSubIndex = -1; // used to track selected index in TriggerCategory
-    public int trigListIndex = -1; // used to track selected node in TriggerTree
+    public int trigListIndex = -1; // used to track selected node in the trigger box list
     public TriggerEntry? activeTrigger = null;
     public TriggerCategory? activeCategory = null;
 
@@ -236,9 +236,8 @@ public class MainWindow : Window, IDisposable
                     }
                 } else if(state.activeCategory is not null) // Reordering Categories inside the Tree
                 {
-                    // Greater than 1 because we don't want to put any categories above the "Default" group (index 0)
                     var index = plugin.Configuration.TriggerTree.GetIndexOfCategory(state.activeCategory.Name);
-                    if(index > 1)
+                    if(index > 0)
                     {
                         plugin.Configuration.TriggerTree.SwapCategories(index, --index);
                         state.activeCategory = plugin.Configuration.TriggerTree.ElementAt(index);
@@ -262,9 +261,8 @@ public class MainWindow : Window, IDisposable
                     }
                 } else if(state.activeCategory is not null) // Reordering Categories inside the Tree
                 {
-                    // Greater than 0 because we don't want to put move the default category (index 0) below the others
                     var index = plugin.Configuration.TriggerTree.GetIndexOfCategory(state.activeCategory);
-                    if(index < plugin.Configuration.TriggerTree.Count-1 && index > 0)
+                    if(index < plugin.Configuration.TriggerTree.Count-1)
                     {
                         plugin.Configuration.TriggerTree.SwapCategories(index, ++index);
                         state.activeCategory = plugin.Configuration.TriggerTree.ElementAt(index);
@@ -296,7 +294,6 @@ public class MainWindow : Window, IDisposable
                 foreach(var category in plugin.Configuration.TriggerTree)
                 {
                     using var pushedCatId = ImRaii.PushId(category.Name);
-                    if(idx==0 && category.Name == plugin.DefaultCategoryName && category.Triggers.Count == 0) continue;
                     if(ImGui.Checkbox($"##CheckBox{category.Name}{pushedCatId}", ref category.enabled))
                     {
                         updateConfig = true;
@@ -434,7 +431,7 @@ public class MainWindow : Window, IDisposable
                                 state.chatIndex = index;
                                 if(ImGui.MenuItem("Save to Triggers?"))
                                 {
-                                    SaveChatMessageToTriggers(ses);
+                                    AddTrigger(new TriggerEntry(ses), plugin.DefaultCategoryName);
                                     state.chatIndex = -1;
                                 }
                             }
@@ -527,17 +524,6 @@ public class MainWindow : Window, IDisposable
         plugin.Configuration.Save();
     }
 
-    void SaveChatMessageToTriggers(String str)
-    {
-        var trigger = new TriggerEntry(str);
-        var defCategory = plugin.Configuration.TriggerTree[plugin.DefaultCategoryName];
-        if(defCategory is not null)
-        {
-            defCategory.Triggers.Add(trigger);
-            plugin.Configuration.Save();
-        }
-    }
-
     void AddTrigger(TriggerEntry trigger, string categoryName)
     {
         var trig = new TriggerEntry(trigger);
@@ -560,7 +546,7 @@ public class MainWindow : Window, IDisposable
         if(category is not null)
         {
             category.Triggers.RemoveAt(idx);
-            if(category.Name != plugin.DefaultCategoryName && category.Triggers.Count == 0)
+            if(category.Triggers.Count == 0)
             {
                 plugin.Configuration.TriggerTree.Remove(categoryName);
             }
@@ -570,28 +556,29 @@ public class MainWindow : Window, IDisposable
 
     void RefreshSelectionState(string categoryName, bool openActiveCategory, bool stopAtCategory=false)
     {
-        state.activeCategory = plugin.Configuration.TriggerTree[categoryName]!;
         var tempIdx = 0;
-        foreach(var c in plugin.Configuration.TriggerTree)
+        state.activeCategory = plugin.Configuration.TriggerTree[categoryName];
+        if(state.activeCategory is not null)
         {
-            if(c.Name == plugin.DefaultCategoryName && c.Triggers.Count == 0) continue; // default isn't rendered when it is empty
-            tempIdx++;
-            if(c.Name == categoryName)
-            {
-                if(stopAtCategory) { state.trigSubIndex = -1; }
-                else               { state.trigSubIndex = c.Triggers.Count-1; }
-                state.activeCategory = c;
-                break;
-            } else if(!c.opened) { continue; }
-            foreach(var t in c.Triggers)
+            foreach(var c in plugin.Configuration.TriggerTree)
             {
                 tempIdx++;
+                if(c.Name == categoryName)
+                {
+                    if(stopAtCategory) { state.trigSubIndex = -1; }
+                    else               { state.trigSubIndex = c.Triggers.Count-1; }
+                    state.activeCategory = c;
+                    break;
+                } else if(!c.opened) { continue; }
+                foreach(var t in c.Triggers)
+                {
+                    tempIdx++;
+                }
             }
+            state.trigListIndex = tempIdx + state.trigSubIndex;
+            //Log.Debug($"activeCategory.Name == \"{state.activeCategory.Name}\" ;; trigListIndex == {state.trigListIndex} ;; trigSubIndex == {state.trigSubIndex}");
+            state.activeTrigger = stopAtCategory ? null : state.activeCategory.Triggers.ElementAt(state.trigSubIndex);
+            state.activeCategory.opened = openActiveCategory;
         }
-        state.trigListIndex = tempIdx + state.trigSubIndex;
-        //Log.Debug($"activeCategory.Name == \"{state.activeCategory.Name}\" ;; trigListIndex == {state.trigListIndex} ;; trigSubIndex == {state.trigSubIndex}");
-        state.activeTrigger = stopAtCategory ? null : state.activeCategory!.Triggers.ElementAt(state.trigSubIndex);
-        state.activeCategory.opened = openActiveCategory;
-        
     }
 }

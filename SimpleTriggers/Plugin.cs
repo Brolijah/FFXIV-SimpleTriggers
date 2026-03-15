@@ -7,9 +7,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using SimpleTriggers.Windows;
 using SimpleTriggers.TextToSpeech;
-using SimpleTriggers.Triggers;
 using System.Threading.Tasks;
-using System.Linq;
 using Serilog;
 
 namespace SimpleTriggers;
@@ -29,7 +27,6 @@ public sealed class Plugin : IDalamudPlugin
     public Configuration Configuration { get; init; }
 
     public readonly WindowSystem WindowSystem = new("Simple Triggers");
-    //private ConfigWindow ConfigWindow { get; init; }
     private MainWindow MainWindow { get; init; }
     private ChatListener ChatListener { get; init; }
     private ITextToSpeech? TextToSpeech {get; set;}
