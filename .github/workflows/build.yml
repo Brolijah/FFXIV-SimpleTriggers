@@ -1,8 +1,12 @@
-name: Sample PR Builder for SamplePlugin
+name: Builder for SimpleTriggers
 
 on:
-  pull_request:
-    branches: [ master ]
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: "Compiles Release build for distribution"
+        required: true
+        default: 'Manual build'
 
 jobs:
 
@@ -10,7 +14,7 @@ jobs:
     runs-on: windows-2022
 
     env:
-      Solution_Name: SamplePlugin
+      Solution_Name: SimpleTriggers
 
     steps:
     - name: Checkout
@@ -19,7 +23,7 @@ jobs:
     - name: Install .NET
       uses: actions/setup-dotnet@v5
       with:
-        dotnet-version: 9.0.x
+        dotnet-version: 10.0.x
 
     - name: Download Dalamud
       run: |
@@ -32,8 +36,8 @@ jobs:
     - name: Store artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: SamplePlugin
-        path: .\SamplePlugin\bin\x64\Release\SamplePlugin\*
+        name: SimpleTriggers
+        path: .\SimpleTriggers\bin\x64\Release\SimpleTriggers\*
         if-no-files-found: error
         retention-days: 1
 
