@@ -3,6 +3,7 @@ using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Collections.Generic;
+using SimpleTriggers.Logger;
 
 namespace SimpleTriggers.Phonetics {
     public class IPA : IDisposable
@@ -44,8 +45,12 @@ namespace SimpleTriggers.Phonetics {
                 } else {
                     append = lower;
                 }
+                // VERY RARE fix. Kokoro's Tokenizer DOES NOT contain "g" for some reason.
+                // If for WHATEVER reason, our dictionary did not find the phrase, we need to
+                // replace "g" with its IPA equivalent.
+                append = append.Replace("g", "ɡ");
                 builder.Append(append);
-                //if(match.Trim().Length>0) Log.Debug($"word={match} ;; match={append}");
+                //if(match.Trim().Length>0) STLog.Log.Debug($"word={match} ;; match={append}");
             }
             return builder.ToString();
         }
