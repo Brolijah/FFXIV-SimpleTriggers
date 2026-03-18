@@ -9,6 +9,7 @@ using SimpleTriggers.Windows;
 using SimpleTriggers.TextToSpeech;
 using System.Threading.Tasks;
 using SimpleTriggers.Logger;
+using System.Linq;
 
 namespace SimpleTriggers;
 
@@ -22,6 +23,7 @@ public sealed class Plugin : IDalamudPlugin
     public string Name => "Simple Triggers";
     private const string CommandPrefixA = "/simpletriggers";
     private const string CommandPrefixB = "/strig";
+    private const string CommandSpeak = "/stspeak";
     internal readonly string DefaultCategoryName = "Default";
     internal uint MaxLogHistoryCeiling = 10000; // Hard coded limit. Who says? Me says.
     internal bool doLogChatHistory = false; // transient value, must be enabled by the user
@@ -55,6 +57,11 @@ public sealed class Plugin : IDalamudPlugin
         CommandManager.AddHandler(CommandPrefixB, new CommandInfo(OnCommand)
         {
             HelpMessage = "Opens the Simple Triggers window."
+        });
+
+        CommandManager.AddHandler(CommandSpeak, new CommandInfo(OnCommandSpeak)
+        {
+            HelpMessage = "Reads aloud the phrase using the configured TTS."
         });
 
         // Tell the UI system that we want our windows to be drawn through the window system
@@ -108,11 +115,20 @@ public sealed class Plugin : IDalamudPlugin
                 Configuration.Save();
                 PrintChatMsg("All triggers are disabled.");
             break;
+            case "speak":
+                var msg = args.Split(" ", 2);
+                if(msg.Length > 1) SpeakTTS(msg[1]);
+            break;
 
             default:
                 MainWindow.Toggle();
             break;
         }
+    }
+
+    private void OnCommandSpeak(string command, string args)
+    {
+        SpeakTTS(args);
     }
 
     internal void SwapTTSBackend(TextToSpeechType ttst)

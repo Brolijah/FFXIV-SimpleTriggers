@@ -13,8 +13,12 @@ New Triggers can be created by either clicking the "Add New" button on the Trigg
 Chat logging is disabled by default every time the plugin starts, and once enabled you can search for specific messages it has recorded. This may be useful if you're unsure of the exact message you want to create a trigger for but only know some of the words. You can also configure how many messages should be stored at a time.
 Message history is never saved outside of the plugin running and is lost when the plugin is disabled.
 
-* Commands: `/simpletriggers` or `/strig`
-  * Optional arguments: `enable`/`on` or `disable`/`off` to activate or deactivate the whole trigger system.
+* Commands:
+  * `/simpletriggers` or `/strig`
+    * `enable`/`on` or `disable`/`off` to activate or deactivate the whole trigger system.
+    * `speak <phrase>` will read aloud the requested phrase using your configured TTS.
+  * `/stspeak <phrase>` same as the above speak argument, just as a shorter command.
+
 
 ### Images
 ![](https://i.imgur.com/KuZnQRM.png) ![](https://i.imgur.com/MDOUnRy.png)
