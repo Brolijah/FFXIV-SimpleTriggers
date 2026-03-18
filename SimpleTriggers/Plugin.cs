@@ -96,6 +96,7 @@ public sealed class Plugin : IDalamudPlugin
 
         CommandManager.RemoveHandler(CommandPrefixA);
         CommandManager.RemoveHandler(CommandPrefixB);
+        CommandManager.RemoveHandler(CommandSpeak);
     }
 
     private void OnCommand(string command, string args)
