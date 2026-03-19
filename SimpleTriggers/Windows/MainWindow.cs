@@ -11,6 +11,7 @@ using SimpleTriggers.Gui;
 using SimpleTriggers.SeFunctions;
 using SimpleTriggers.TextToSpeech;
 using SimpleTriggers.Triggers;
+using SimpleTriggers.Logger;
 
 namespace SimpleTriggers.Windows;
 
@@ -25,7 +26,6 @@ internal struct SelectionState
     public SelectionState() {}
     public void Reset()
     {
-        chatIndex = -1;
         trigSubIndex = -1;
         trigListIndex = -1;
         activeTrigger = null;
@@ -165,7 +165,7 @@ public class MainWindow : Window, IDisposable
         if(editing.doResponseTTS)
         {
             ImGui.SameLine();
-            if(ImGuiComponents.IconButton(FontAwesomeIcon.Play))
+            if(ImGuiComponents.IconButton("##TrigTestTTS", FontAwesomeIcon.Play))
             {
                 plugin.SpeakTTS(editing.response);
             }
@@ -180,7 +180,7 @@ public class MainWindow : Window, IDisposable
         if(editing.doPlaySound)
         {
             ImGui.SameLine();
-            if(ImGuiComponents.IconButton(FontAwesomeIcon.Play))
+            if(ImGuiComponents.IconButton("##TrigTestSFX", FontAwesomeIcon.Play))
             {
                 PlaySound.Play(SoundsExtensions.FromIdx(editing.soundFx));
             }
