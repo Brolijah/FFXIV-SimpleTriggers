@@ -206,20 +206,24 @@ public class MainWindow : Window, IDisposable
         {
             ImGui.OpenPopup("Import");
         }
-        using (var popup = ImRaii.ContextPopup("Import"))
+        using (var popup = ImRaii.Popup("Import"))
         {
             if (popup)
             {
                 bool doImport = false;
+                ImGui.Text("Paste below:");
                 ImGui.SetNextItemWidth(200 * ImGuiHelpers.GlobalScale);
                 if(ImGui.InputText("##ImportTriggerField", ref TriggerPreset.buffer, 8192, ImGuiInputTextFlags.EnterReturnsTrue)) doImport = true;
                 ImGui.SameLine(); if (ImGui.Button("OK")) doImport = true;
                 if(doImport)
                 {
-                    var name = TriggerPreset.Import(TriggerPreset.buffer, plugin);
-                    if(name is not null) RefreshSelectionState(name, true, true);
-                    plugin.Configuration.Save();
-                    ImGui.CloseCurrentPopup();
+                    if(TriggerPreset.buffer.Length > 0)
+                    {
+                        var name = TriggerPreset.Import(TriggerPreset.buffer, plugin);
+                        if(name is not null) RefreshSelectionState(name, true, true);
+                        plugin.Configuration.Save();
+                        ImGui.CloseCurrentPopup();
+                    }
                 }
             }
         }
