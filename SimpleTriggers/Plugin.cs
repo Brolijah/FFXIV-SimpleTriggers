@@ -186,6 +186,7 @@ public sealed class Plugin : IDalamudPlugin
     internal void SetTTSVoice(string voice) => TextToSpeech?.SetVoice(voice);
     internal void SetTTSVolume(float volume) => TextToSpeech?.SetVolume(volume);
     internal void SetTTSSpeed(float speed) => TextToSpeech?.SetSpeed(speed);
+    internal void SetTTSLanguage(string lang) => TextToSpeech?.SetLanguage(lang);
     internal bool CanSpeak() => TextToSpeech?.IsInitialized() ?? false;
 
     public void ToggleConfigUi() => MainWindow.Toggle();

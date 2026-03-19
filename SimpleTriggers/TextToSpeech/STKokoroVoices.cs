@@ -50,7 +50,7 @@ public enum KokoroVoiceKind
     pm_santa,
     // French
     ff_siwis,
-/*
+
     // Hindi
     hf_alpha,
     hf_beta,
@@ -67,7 +67,7 @@ public enum KokoroVoiceKind
     zf_xiaoni,
     zf_xiaoxiao,
     zf_xiaoyi
-*/
+
 }
 
 public static class KokoroVoiceHelper
@@ -119,7 +119,7 @@ public static class KokoroVoiceHelper
             KokoroVoiceKind.pm_santa => "Santa (M) (PT)",
             // French
             KokoroVoiceKind.ff_siwis => "Siwis (F) (FR)",
-        /*
+
             // Hindi
             KokoroVoiceKind.hf_alpha => "Alpha (F) (HI)",
             KokoroVoiceKind.hf_beta => "Beta (F) (HI)",
@@ -136,7 +136,6 @@ public static class KokoroVoiceHelper
             KokoroVoiceKind.zf_xiaoni => "Xiaoni (F) (CH)",
             KokoroVoiceKind.zf_xiaoxiao => "Xiaoxiao (F) (CH)",
             KokoroVoiceKind.zf_xiaoyi => "Xiaoyi (F) (CH)",
-        */
             _ => "UNKNOWN"
         };
     }

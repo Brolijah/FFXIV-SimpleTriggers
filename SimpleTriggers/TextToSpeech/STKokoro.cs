@@ -117,7 +117,7 @@ public class STKokoro : ITextToSpeech
 
     public void SetLanguage(string lang)
     {
-        
+        this.lang = lang;
     }
 
     public void Speak(string message, bool extra)
