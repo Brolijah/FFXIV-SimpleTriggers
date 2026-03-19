@@ -14,7 +14,7 @@ public static class STKokoroUI
     public static void DrawKokoroSettings(Plugin plugin)
     {
         ImGui.SetNextItemWidth(160 * ImGuiHelpers.GlobalScale);
-        using (var box = ImRaii.Combo("##KokoroVoiceBox", KokoroVoiceHelper.ToName(plugin.Configuration.TTSKokoroVoice), ImGuiComboFlags.HeightLarge))
+        using (var box = ImRaii.Combo("##KokoroVoiceBox", KokoroVoiceHelper.ToName(plugin.Configuration.Kokoro.Voice), ImGuiComboFlags.HeightLarge))
         {
             if(box)
             {
@@ -22,7 +22,7 @@ public static class STKokoroUI
                 {
                     if(ImGui.Selectable(KokoroVoiceHelper.ToName((KokoroVoiceKind)i)))
                     {
-                        plugin.Configuration.TTSKokoroVoice = (KokoroVoiceKind)i;
+                        plugin.Configuration.Kokoro.Voice = (KokoroVoiceKind)i;
                         plugin.Configuration.Save();
                         plugin.SetTTSVoice(KokoroVoiceHelper.ToString((KokoroVoiceKind)i));
                     }
@@ -40,22 +40,22 @@ public static class STKokoroUI
 
         // Volume and Speed
         ImGui.SetNextItemWidth(192 * ImGuiHelpers.GlobalScale);
-        ImGui.SliderFloat("Voice Speed", ref plugin.Configuration.TTSSpeed,0.5f, 1.5f,"%.1fx");
+        ImGui.SliderFloat("Voice Speed", ref plugin.Configuration.Kokoro.Speed,0.5f, 1.5f,"%.1fx");
         if(ImGui.IsItemDeactivatedAfterEdit())
         {
-            plugin.SetTTSSpeed(plugin.Configuration.TTSSpeed);
+            plugin.SetTTSSpeed(plugin.Configuration.Kokoro.Speed);
             plugin.Configuration.Save();
         }
         
         ImGui.SetNextItemWidth(192 * ImGuiHelpers.GlobalScale);
-        ImGui.SliderFloat("Voice Volume", ref plugin.Configuration.TTSVolume,1.0f, 100.0f,"%.0f%%");
+        ImGui.SliderFloat("Voice Volume", ref plugin.Configuration.Kokoro.Volume,1.0f, 100.0f,"%.0f%%");
         if(ImGui.IsItemDeactivatedAfterEdit())
         {
-            plugin.SetTTSVolume(plugin.Configuration.TTSVolume);
+            plugin.SetTTSVolume(plugin.Configuration.Kokoro.Volume);
             plugin.Configuration.Save();
         }
 
-        if(ImGui.Checkbox("Use espeak for phonemes?", ref plugin.Configuration.KokoroUseEspeak))
+        if(ImGui.Checkbox("Use espeak for phonemes?", ref plugin.Configuration.Kokoro.UseEspeak))
         {
             plugin.Configuration.Save();
         }

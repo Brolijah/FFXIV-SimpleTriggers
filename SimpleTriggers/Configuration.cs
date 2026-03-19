@@ -5,6 +5,25 @@ using SimpleTriggers.Triggers;
 
 namespace SimpleTriggers;
 
+public class KokoroConfig
+{
+    public KokoroVoiceKind Voice = KokoroVoiceKind.af_heart; // 0
+    public float Speed = 1.0f; // [0, 2] // technically supports higher, but 2.0x is already incomprehensible
+    public float Volume = 100.0f; // [0, 100] // gets scaled to [0,1] internally
+    public string Language = "en-us";
+    public bool UseEspeak = false;
+    public KokoroConfig() {}
+}
+
+public class WinSpeechConfig
+{
+    public string Voice = "";
+    public int Speed = 0; // [-5, +5]
+    public int Volume = 100; // [0, 100]
+    public WinSpeechConfig() {}
+}
+
+
 [Serializable]
 public class Configuration : IPluginConfiguration
 {
@@ -12,12 +31,9 @@ public class Configuration : IPluginConfiguration
     public bool EnableTriggers = true;
     public uint MaxLogHistory = 500;
     public TextToSpeechType TTSProvider = TextToSpeechType.None;
-    public KokoroVoiceKind TTSKokoroVoice = 0;
-    public bool KokoroUseEspeak = false;
-    public float TTSSpeed = 1.0f;
-    public float TTSVolume = 100.0f;
-    public string WinSpeechVoice = "";
-    public TriggerTree TriggerTree {get; set;} = new();
+    public KokoroConfig Kokoro { get; set; } = new();
+    public WinSpeechConfig WinSpeech { get; set; } = new();
+    public TriggerTree TriggerTree { get; set; } = new();
 
     // The below exists just to make saving less cumbersome
     public void Save()

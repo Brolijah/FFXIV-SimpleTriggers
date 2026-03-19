@@ -7,5 +7,6 @@ public interface ITextToSpeech : IDisposable
     void SetVoice(string voice);
     void SetVolume(float volume);
     void SetSpeed(float speed);
+    void SetLanguage(string lang);
     bool IsInitialized();
 }

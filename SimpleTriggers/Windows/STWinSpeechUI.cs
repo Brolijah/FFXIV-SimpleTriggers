@@ -28,7 +28,7 @@ public static class STWinSpeechUI
         }
 
         ImGui.SetNextItemWidth(160 * ImGuiHelpers.GlobalScale);
-        using (var box = ImRaii.Combo("##WinSpeechVoiceBox", plugin.Configuration.WinSpeechVoice, ImGuiComboFlags.HeightLarge))
+        using (var box = ImRaii.Combo("##WinSpeechVoiceBox", plugin.Configuration.WinSpeech.Voice, ImGuiComboFlags.HeightLarge))
         {
             var synth = new SpeechSynthesizer();
             if(box)
@@ -38,7 +38,7 @@ public static class STWinSpeechUI
                     var info = voice.VoiceInfo;
                     if(ImGui.Selectable(info.Name))
                     {
-                        plugin.Configuration.WinSpeechVoice = info.Name;
+                        plugin.Configuration.WinSpeech.Voice = info.Name;
                         plugin.Configuration.Save();
                         plugin.SetTTSVoice(info.Name);
                     }
@@ -56,18 +56,18 @@ public static class STWinSpeechUI
 
         // Volume and Speed
         ImGui.SetNextItemWidth(192 * ImGuiHelpers.GlobalScale);
-        ImGui.SliderFloat("Voice Speed", ref plugin.Configuration.TTSSpeed,0.5f, 1.5f,"%.1fx");
+        ImGui.SliderInt("Voice Speed", ref plugin.Configuration.WinSpeech.Speed,-5, 5, "%+d");
         if(ImGui.IsItemDeactivatedAfterEdit())
         {
-            plugin.SetTTSSpeed(plugin.Configuration.TTSSpeed);
+            plugin.SetTTSSpeed(plugin.Configuration.WinSpeech.Speed);
             plugin.Configuration.Save();
         }
 
         ImGui.SetNextItemWidth(192 * ImGuiHelpers.GlobalScale);
-        ImGui.SliderFloat("Voice Volume", ref plugin.Configuration.TTSVolume,1.0f, 100.0f,"%.0f%%");
+        ImGui.SliderInt("Voice Volume", ref plugin.Configuration.WinSpeech.Volume,1, 100,"%d%%");
         if(ImGui.IsItemDeactivatedAfterEdit())
         {
-            plugin.SetTTSVolume(plugin.Configuration.TTSVolume);
+            plugin.SetTTSVolume(plugin.Configuration.WinSpeech.Volume);
             plugin.Configuration.Save();
         }
     }

@@ -28,8 +28,13 @@ public class STWinSpeech : ITextToSpeech
     }
 
     public void SetSpeed(float speed)
-    { }
-    
+    {
+        synth.Rate = (int)speed;
+    }
+
+    public void SetLanguage(string lang)
+    { } // Language is controlled by the user's Windows Settings
+
     public void Speak(string message, bool extra)
     {
         try

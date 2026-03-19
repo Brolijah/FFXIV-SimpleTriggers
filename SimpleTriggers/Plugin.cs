@@ -9,7 +9,6 @@ using SimpleTriggers.Windows;
 using SimpleTriggers.TextToSpeech;
 using System.Threading.Tasks;
 using SimpleTriggers.Logger;
-using System.Linq;
 
 namespace SimpleTriggers;
 
@@ -141,15 +140,15 @@ public sealed class Plugin : IDalamudPlugin
         {
             case TextToSpeechType.Kokoro:
                 TextToSpeech = new STKokoro(PluginInterface.AssemblyLocation.Directory?.FullName!, PluginInterface.GetPluginConfigDirectory());
-                TextToSpeech.SetVoice(KokoroVoiceHelper.ToString(Configuration.TTSKokoroVoice));
-                TextToSpeech.SetSpeed(Configuration.TTSSpeed);
-                TextToSpeech.SetVolume(Configuration.TTSVolume);
+                TextToSpeech.SetVoice(KokoroVoiceHelper.ToString(Configuration.Kokoro.Voice));
+                TextToSpeech.SetSpeed(Configuration.Kokoro.Speed);
+                TextToSpeech.SetVolume(Configuration.Kokoro.Volume);
                 break;
             case TextToSpeechType.WindowsSystem:
                 TextToSpeech = new STWinSpeech();
-                TextToSpeech.SetVoice(Configuration.WinSpeechVoice);
-                TextToSpeech.SetSpeed(Configuration.TTSSpeed);
-                TextToSpeech.SetVolume(Configuration.TTSVolume);
+                TextToSpeech.SetVoice(Configuration.WinSpeech.Voice);
+                TextToSpeech.SetSpeed(Configuration.WinSpeech.Speed);
+                TextToSpeech.SetVolume(Configuration.WinSpeech.Volume);
                 break;
         }
     }
@@ -173,7 +172,7 @@ public sealed class Plugin : IDalamudPlugin
                     break;
                 */
                 case TextToSpeechType.Kokoro:
-                    Task.Run(() => TextToSpeech?.Speak(message, Configuration.KokoroUseEspeak));
+                    Task.Run(() => TextToSpeech?.Speak(message, Configuration.Kokoro.UseEspeak));
                     break;
                 case TextToSpeechType.WindowsSystem:
                     Task.Run(() => TextToSpeech?.Speak(message));

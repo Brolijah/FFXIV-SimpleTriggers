@@ -21,10 +21,10 @@ public class STKokoro : ITextToSpeech
     private readonly Task<KokoroTTS?> ttsTask;
     private readonly CancellationTokenSource cts = new();
     private float speed = 1.0f;
+    private string lang = "en-us";
     private IPA ipa;
     private KokoroVoice kv;
     private KokoroPlayback kp;
-    //private AudioPlayer kp;
     private KokoroJob? lastJob;
     public STKokoro(string binPath, string configPath)
     {
@@ -97,12 +97,13 @@ public class STKokoro : ITextToSpeech
         kv = KokoroVoiceManager.GetVoice(strVoice);
     }
 
-    // [0.0, 100.0], though technically would allow values over 100
+    // [0.0, 100.0]
     public void SetVolume(float volume)
     {
+        var v = volume/100f; // scales it down between [0, 1]
         try
         {
-            kp.SetVolume(volume/100f);
+            kp.SetVolume(v);
         } catch (Exception e)
         {
             STLog.Log.Warning(e,"Exception caught:");
@@ -114,6 +115,11 @@ public class STKokoro : ITextToSpeech
         this.speed = speed;
     }
 
+    public void SetLanguage(string lang)
+    {
+        
+    }
+
     public void Speak(string message, bool extra)
     {
         if(TryGetKokoroTTS(out var tts))
@@ -121,7 +127,7 @@ public class STKokoro : ITextToSpeech
             try
             {
                 int[]? tokens;
-                if(extra) tokens = Tokenizer.Tokenize(message, "en-us");
+                if(extra) tokens = Tokenizer.Tokenize(message, lang);
                 else      tokens = Tokenizer.TokenizePhonemes(ipa.EnglishToIPA(message).ToCharArray());
 
                 lastJob?.Cancel();
