@@ -436,7 +436,7 @@ public class MainWindow : Window, IDisposable
                 if(idx==0)
                 {
                     using var color = ImRaii.PushColor(ImGuiCol.Text, new Vector4(1.0f, 1.0f, 1.0f, 0.8f));
-                    ImGui.Text("Looks like you have no triggers yet. To get started, click \"Add New.\"\n"+
+                    ImGui.Text("Looks like you have no triggers yet. To get started, click the \"Add\" button.\n"+
                                "Or, you can Save a chat message from the \"Chat History\" tab.");
                 }
             }

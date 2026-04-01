@@ -1,14 +1,19 @@
 using System;
+using System.Collections.Generic;
+using System.Text;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Plugin.Services;
-using FFXIVClientStructs.FFXIV.Client.System.String;
 using SimpleTriggers.SeFunctions;
 
 namespace SimpleTriggers;
 
 internal class ChatListener : IDisposable
 {
+    // Evil code, but these are the most common unique characters that appear in chat (mainly combat)
+    private readonly HashSet<char> blacklist = [
+        (char)SeIconChar.ArrowRight, (char)SeIconChar.LinkMarker, (char)SeIconChar.Buff, (char)SeIconChar.Debuff
+    ];
     private readonly Plugin plugin;
     private readonly IChatGui chatGui;
 
@@ -19,13 +24,15 @@ internal class ChatListener : IDisposable
         chatGui.ChatMessage += OnChatMessage;
     }
 
-    private unsafe string SanitizeString(string text)
+    private string SanitizeString(string text, HashSet<char>? characterSet = null)
     {
-        var utfStr = new Utf8String(text);
-        utfStr.SanitizeString(
-            AllowedEntities.UppercaseLetters | AllowedEntities.LowercaseLetters |
-            AllowedEntities.Numbers | AllowedEntities.SpecialCharacters | AllowedEntities.CJK);
-        return utfStr.ToString().Trim();
+        var ret = new StringBuilder(text.Length);
+        var bl = characterSet ?? blacklist;
+        foreach(var c in text)
+        {
+            if(!bl.Contains(c)) ret.Append(c);
+        }
+        return ret.ToString().Trim();
     }
 
     public void Dispose()
@@ -66,14 +73,11 @@ internal class ChatListener : IDisposable
                                 {
                                     plugin.PrintChatMsg(trig.response);
                                 }
-
                             }
                         }
                     }
                 }
-                
             }
-            
         }
 
         if(plugin.doLogChatHistory)

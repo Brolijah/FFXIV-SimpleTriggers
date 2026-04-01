@@ -4,10 +4,10 @@ using Dalamud.Plugin;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin.Services;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using System.Reflection;
 using SimpleTriggers.Windows;
 using SimpleTriggers.TextToSpeech;
-using System.Threading.Tasks;
 using SimpleTriggers.Logger;
 
 namespace SimpleTriggers;
@@ -40,7 +40,7 @@ public sealed class Plugin : IDalamudPlugin
         Configuration = PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
         if(Configuration.MaxLogHistory > MaxLogHistoryCeiling) { Configuration.MaxLogHistory = MaxLogHistoryCeiling; }
         ChatListener = new ChatListener(this, ChatGui);
-        ChatLog = [];
+        ChatLog = new Queue<string>((int)Configuration.MaxLogHistory);
 
         SwapTTSBackend(Configuration.TTSProvider);
         var version = GetInformationalVersion();
