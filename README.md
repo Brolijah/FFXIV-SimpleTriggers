@@ -1,5 +1,5 @@
 # Simple Triggers
-![Version](https://img.shields.io/github/v/release/Brolijah/SimpleTriggers?label=version)
+![Version](https://img.shields.io/github/v/release/Brolijah/SimpleTriggers)
 ![Downloads](https://img.shields.io/github/downloads/Brolijah/SimpleTriggers/total)
 ![Lines of Code](https://aschey.tech/tokei/github/Brolijah/SimpleTriggers?category=code)
 ![Last Commit](https://img.shields.io/github/last-commit/Brolijah/SimpleTriggers)
