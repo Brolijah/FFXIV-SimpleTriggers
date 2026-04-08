@@ -12,6 +12,7 @@ using SimpleTriggers.SeFunctions;
 using SimpleTriggers.TextToSpeech;
 using SimpleTriggers.Triggers;
 using SimpleTriggers.Logger;
+using NAudio.CoreAudioApi;
 
 namespace SimpleTriggers.Windows;
 
@@ -551,7 +552,7 @@ public class MainWindow : Window, IDisposable
                         {
                             plugin.Configuration.TTSProvider = (TextToSpeechType)i;
                             plugin.Configuration.Save();
-                            plugin.SwapTTSBackend((TextToSpeechType)i);
+                            plugin.SwapTTSBackend();
                         }
                     }
                 }
@@ -569,6 +570,28 @@ public class MainWindow : Window, IDisposable
                 STWinSpeechUI.DrawWinSpeechSettings(plugin);
             }
             ImGui.Unindent();
+
+            // Output Device
+            {
+                ImGui.NewLine();
+                var enumerator = new MMDeviceEnumerator();
+                var devices = enumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active);
+                ImGui.SetNextItemWidth(300 * ImGuiHelpers.GlobalScale);
+                using (var box = ImRaii.Combo("Output Device", devices.FirstOrDefault(d => d.ID == plugin.Configuration.AudioOutputDevice)?.FriendlyName ?? devices.First().FriendlyName))
+                {
+                    if (box)
+                    {
+                        for(var i = 0; i < devices.Count-1; ++i)
+                        {
+                            if(ImGui.Selectable($"{devices[i].FriendlyName}"))
+                            {
+                                plugin.Configuration.AudioOutputDevice = devices[i].ID;
+                                plugin.SetTTSOutputDevice(i);
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 

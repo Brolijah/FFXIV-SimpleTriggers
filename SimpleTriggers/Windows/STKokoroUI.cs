@@ -49,9 +49,21 @@ public static class STKokoroUI
         }
         
         ImGui.SetNextItemWidth(192 * ImGuiHelpers.GlobalScale);
-        ImGui.SliderFloat("Voice Volume", ref plugin.Configuration.Kokoro.Volume,1.0f, 100.0f,"%.0f%%");
+        if(plugin.Configuration.AllowAudioBoost) // Danger Zone, Use Wisely
+        {
+            ImGui.DragScalar<float>("Voice Volume", ref plugin.Configuration.Kokoro.Volume,1f,1f,3000f,"%.0f%%",ImGuiSliderFlags.AlwaysClamp);
+        } else { // Normal Range
+            ImGui.SliderFloat("Voice Volume", ref plugin.Configuration.Kokoro.Volume,1.0f, 200.0f,"%.0f%%", ImGuiSliderFlags.NoInput);
+        }
         if(ImGui.IsItemDeactivatedAfterEdit())
         {
+            plugin.Configuration.Kokoro.Volume = Math.Clamp(plugin.Configuration.Kokoro.Volume, 1, plugin.Configuration.AllowAudioBoost ? 3000 : 200);
+            plugin.SetTTSVolume(plugin.Configuration.Kokoro.Volume);
+            plugin.Configuration.Save();
+        }
+        if(ImGui.Checkbox("Allow boosting over 200%", ref plugin.Configuration.AllowAudioBoost))
+        {
+            plugin.Configuration.Kokoro.Volume = Math.Clamp(plugin.Configuration.Kokoro.Volume, 1, 200);
             plugin.SetTTSVolume(plugin.Configuration.Kokoro.Volume);
             plugin.Configuration.Save();
         }

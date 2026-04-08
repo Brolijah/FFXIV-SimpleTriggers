@@ -1,13 +1,17 @@
 using System;
 using System.Speech.Synthesis;
 using SimpleTriggers.Logger;
+using SimpleTriggers.TextToSpeech;
 
 public class STWinSpeech : ITextToSpeech
 {
+    public AudioPlayer AudioPlayer { get; }
     private SpeechSynthesizer synth {get; init;}
     public STWinSpeech()
     {
         synth = new SpeechSynthesizer();
+        AudioPlayer = new AudioPlayer();
+        // TODO
         synth.SetOutputToDefaultAudioDevice();
     }
 
@@ -53,6 +57,7 @@ public class STWinSpeech : ITextToSpeech
 
     public void Dispose()
     {
+        AudioPlayer.Dispose();
         synth.Dispose();
     }
 }
