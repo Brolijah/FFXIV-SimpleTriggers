@@ -42,6 +42,7 @@ public class STWinSpeech : ITextToSpeech
 
     public void Speak(string message, bool extra)
     {
+        AudioPlayer.StopPlayback(true);
         try
         {
             synth.SpeakAsyncCancelAll();

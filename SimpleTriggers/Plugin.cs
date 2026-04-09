@@ -27,6 +27,7 @@ public sealed class Plugin : IDalamudPlugin
     internal uint MaxLogHistoryCeiling = 10000; // Hard coded limit. Who says? Me says.
     internal bool doLogChatHistory = false; // transient value, must be enabled by the user
     public Configuration Configuration { get; init; }
+    
     public readonly WindowSystem WindowSystem = new("Simple Triggers");
     private MainWindow MainWindow { get; init; }
     private ChatListener ChatListener { get; init; }
