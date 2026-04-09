@@ -576,7 +576,7 @@ public class MainWindow : Window, IDisposable
                 var enumerator = new MMDeviceEnumerator();
                 var devices = enumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active);
                 ImGui.SetNextItemWidth(300 * ImGuiHelpers.GlobalScale);
-                using (var box = ImRaii.Combo("Output Device", devices.FirstOrDefault(d => d.ID == plugin.Configuration.AudioOutputDevice)?.FriendlyName ?? devices.First().FriendlyName))
+                using (var box = ImRaii.Combo("Output Device", devices.FirstOrDefault(d => d.ID.Equals(plugin.Configuration.AudioOutputDevice))?.FriendlyName ?? devices.First().FriendlyName))
                 {
                     if (box)
                     {
@@ -586,6 +586,7 @@ public class MainWindow : Window, IDisposable
                             {
                                 plugin.Configuration.AudioOutputDevice = devices[i].ID;
                                 plugin.SetTTSOutputDevice(i);
+                                plugin.Configuration.Save();
                             }
                         }
                     }
