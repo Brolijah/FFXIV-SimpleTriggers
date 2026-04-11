@@ -41,6 +41,22 @@ static public class AudioDevicesUI
         }
     }
 
+    public static string GetDefaultDeviceName()
+    {
+        try
+        {
+            using(var enumerator = new MMDeviceEnumerator())
+            {
+                var d = enumerator.GetDefaultAudioEndpoint(DataFlow.Render, Role.Console);
+                return d.FriendlyName + " (Default)";
+            }
+        } catch (Exception e)
+        {
+            STLog.Log.Error(e, "Exception caught:");
+        }
+        return "Unknown";
+    }
+
     public static void DrawAudioDeviceBox(Plugin plugin)
     {
         if(failed)
@@ -50,7 +66,7 @@ static public class AudioDevicesUI
         }
 
         ImGui.SetNextItemWidth(400 * ImGuiHelpers.GlobalScale);
-        using (var box = ImRaii.Combo("Output Device", DeviceCache.FirstOrDefault(d => d.ID.Equals(plugin.Configuration.AudioOutputDevice))?.Name ?? ""))
+        using (var box = ImRaii.Combo("Output Device", DeviceCache.FirstOrDefault(d => d.ID.Equals(plugin.Configuration.AudioOutputDevice))?.Name ?? GetDefaultDeviceName()))
         {
             if(ImGui.IsWindowAppearing())
             {
@@ -59,7 +75,7 @@ static public class AudioDevicesUI
             
             if (box)
             {
-                for(var i = 0; i < DeviceCache.Count-1; ++i)
+                for(var i = 0; i < DeviceCache.Count; ++i)
                 {
                     if(ImGui.Selectable(DeviceCache[i].Name))
                     {

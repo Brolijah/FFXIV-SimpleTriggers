@@ -54,8 +54,7 @@ public class AudioPlayer : IDisposable
                 }
             }
         } catch (Exception e) {
-            STLog.Log.Error("Failed to set the output device. Will use the default (-1)");
-            STLog.Log.Error(e, "Exception caught:");
+            STLog.Log.Error(e, "AudioPlayer.DeviceIdToNumber(): Exception caught:");
         }
         return -1;
     }
