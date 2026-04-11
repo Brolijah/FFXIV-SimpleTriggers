@@ -83,7 +83,7 @@ public class AudioPlayer : IDisposable
         } finally { semaphore.Release(); }
     }
 
-    public bool TryGetMMDevice(string deviceId, [NotNullWhen(true)] out MMDevice? device)
+    private bool TryGetMMDevice(string deviceId, [NotNullWhen(true)] out MMDevice? device)
     {
         try
         {
