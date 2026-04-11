@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using NAudio.CoreAudioApi;
@@ -14,70 +15,93 @@ public class AudioPlayer : IDisposable
     private readonly SemaphoreSlim semaphore = new(1, 1);
     private readonly WaveFormat waveFormat = new (24000, 16, 1);
     private readonly ConcurrentQueue<byte[]> queue = [];
-    private WaveOutEvent waveOut;
+    private WasapiOut waveOut;
+    private volatile bool resetInit = false;
     private volatile float volume = 1.0f;
     private volatile bool hasExited = false;
 
     public AudioPlayer(string deviceId = "")
     {
-        waveOut = new WaveOutEvent() { DeviceNumber = DeviceIdToNumber(deviceId), DesiredLatency = 150 };
-        new Thread(async() => {
+        if(TryGetMMDevice(deviceId, out var device))
+        {
+            waveOut = new WasapiOut(device, AudioClientShareMode.Shared, true, 100);
+        } else { waveOut = new WasapiOut(AudioClientShareMode.Shared, true, 100);} // fallback to default
+
+        var t = new Thread(async() => {
+            var mixer = new MixingSampleProvider(WaveFormat.CreateIeeeFloatWaveFormat(44100, 1));
+            mixer.ReadFully = true;
+            waveOut.Init(mixer);
+            waveOut.Play();
+
             while(!hasExited) {
                 await Task.Delay(50);
+                await semaphore.WaitAsync();
+                try {
+                    if(resetInit)
+                    {
+                        waveOut.Init(mixer);
+                        waveOut.Play();
+                        resetInit = false;
+                    }
+                } catch (Exception e)
+                { STLog.Log.Error(e, "Exception caught:"); 
+                } finally { semaphore.Release(); }
+
                 // check queue
                 while(!hasExited && queue.TryDequeue(out var packet))
                 {
-                    await semaphore.WaitAsync();
                     try {
                         var stream = new RawSourceWaveStream(packet, 0, packet.Length, waveFormat);
-                        var mix = new VolumeSampleProvider(stream.ToSampleProvider()) { Volume = volume };
-                        waveOut.Init(mix);
-                        waveOut.Play();
-                        while(!hasExited && waveOut.PlaybackState == PlaybackState.Playing) { await Task.Delay(5); }
-                        if(!hasExited) { waveOut.Stop(); }
-                    } finally { semaphore.Release(); }
+                        var vmix = new VolumeSampleProvider(stream.ToSampleProvider()) { Volume = volume };
+                        var smix = new WdlResamplingSampleProvider(vmix, mixer.WaveFormat.SampleRate);
+                        mixer.AddMixerInput(smix);
+                        //await Task.Delay(stream.TotalTime); // prevents streams from overlapping (it's funnier not to)
+                    } catch (Exception e)
+                    { STLog.Log.Error(e, "Exception caught:"); }
                 }
             }
-        }){ IsBackground = true }.Start();
+        }){ IsBackground = true };
+        t.SetApartmentState(ApartmentState.STA);
+        t.Start();
     }
 
-    private int DeviceIdToNumber(string id)
-    {
-        try
-        {
-            using(var enumerator = new MMDeviceEnumerator())
-            {
-                var devices = enumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active);
-                for(int i = 0; i < devices.Count-1; ++i)
-                {
-                    if(devices[i].ID.Equals(id)) return i;
-                }
-            }
-        } catch (Exception e) {
-            STLog.Log.Error(e, "AudioPlayer.DeviceIdToNumber(): Exception caught:");
-        }
-        return -1;
-    }
-
-    public void SetOutputDevice(int deviceId = 0)
+    public void SetOutputDevice(string deviceId)
     {
         semaphore.WaitAsync();
         try
         {
             waveOut.Stop();
             waveOut.Dispose();
-            waveOut = new WaveOutEvent() { DeviceNumber = deviceId, DesiredLatency = 150 };
+            if(TryGetMMDevice(deviceId, out var device))
+            {
+                waveOut = new WasapiOut(device, AudioClientShareMode.Shared, true, 100);
+            } else { waveOut = new WasapiOut(AudioClientShareMode.Shared, true, 100); } // fallback to default
+            resetInit = true;
+        } catch (Exception e)
+        {
+            STLog.Log.Error(e, "Exception caught:");
         } finally { semaphore.Release(); }
     }
 
-    public void SetOutputDevice(string deviceId)
+    public bool TryGetMMDevice(string deviceId, [NotNullWhen(true)] out MMDevice? device)
     {
-        SetOutputDevice(DeviceIdToNumber(deviceId));
+        try
+        {
+            using(var enumerator = new MMDeviceEnumerator())
+            {
+                device = enumerator.GetDevice(deviceId);
+            }   
+        } catch(Exception e)
+        {
+            STLog.Log.Warning($"Device ID does not exist: \"{deviceId}\"");
+            STLog.Log.Warning(e, "Exception caught:");
+            device = null;
+        }
+        return device != null;
     }
     
     public void StopPlayback(bool clearQueue = false)
     {
-        waveOut.Stop();
         if(clearQueue)
         {
             queue.Clear();

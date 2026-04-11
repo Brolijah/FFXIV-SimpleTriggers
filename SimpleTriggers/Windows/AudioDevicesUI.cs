@@ -65,8 +65,7 @@ static public class AudioDevicesUI
                 {
                     if(ImGui.Selectable(DeviceCache[i].Name))
                     {
-                        plugin.Configuration.AudioOutputDevice = DeviceCache[i].ID;
-                        plugin.SetTTSOutputDevice(i);
+                        plugin.SetTTSOutputDevice(plugin.Configuration.AudioOutputDevice = DeviceCache[i].ID);
                         plugin.Configuration.Save();
                     }
                 }

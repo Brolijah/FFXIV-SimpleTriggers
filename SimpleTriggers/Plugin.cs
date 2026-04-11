@@ -137,15 +137,13 @@ public sealed class Plugin : IDalamudPlugin
         switch (Configuration.TTSProvider)
         {
             case TextToSpeechType.Kokoro:
-                TextToSpeech = new STKokoro(PluginInterface.AssemblyLocation.Directory?.FullName!, PluginInterface.GetPluginConfigDirectory());
-                TextToSpeech.AudioPlayer.SetOutputDevice(Configuration.AudioOutputDevice);
+                TextToSpeech = new STKokoro(PluginInterface.AssemblyLocation.Directory?.FullName!, PluginInterface.GetPluginConfigDirectory(), Configuration.AudioOutputDevice);
                 TextToSpeech.SetVoice(KokoroVoiceHelper.ToString(Configuration.Kokoro.Voice));
                 TextToSpeech.SetSpeed(Configuration.Kokoro.Speed);
                 TextToSpeech.SetVolume(Configuration.Kokoro.Volume);
                 break;
             case TextToSpeechType.WindowsSystem:
-                TextToSpeech = new STWinSpeech();
-                TextToSpeech.AudioPlayer.SetOutputDevice(Configuration.AudioOutputDevice);
+                TextToSpeech = new STWinSpeech(Configuration.AudioOutputDevice);
                 TextToSpeech.SetVoice(Configuration.WinSpeech.Voice);
                 TextToSpeech.SetSpeed(Configuration.WinSpeech.Speed);
                 TextToSpeech.SetVolume(Configuration.WinSpeech.Volume);
@@ -176,7 +174,7 @@ public sealed class Plugin : IDalamudPlugin
         }
     }
 
-    internal void SetTTSOutputDevice(int id) => TextToSpeech?.AudioPlayer.SetOutputDevice(id);
+    internal void SetTTSOutputDevice(string id) => TextToSpeech?.AudioPlayer.SetOutputDevice(id);
     internal void SetTTSVoice(string voice) => TextToSpeech?.SetVoice(voice);
     internal void SetTTSVolume(float volume) => TextToSpeech?.SetVolume(volume);
     internal void SetTTSSpeed(float speed) => TextToSpeech?.SetSpeed(speed);

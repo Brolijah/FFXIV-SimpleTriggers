@@ -25,7 +25,7 @@ public class STKokoro : ITextToSpeech
     private string lang = "en-us";
     private KokoroVoice kv;
     public AudioPlayer AudioPlayer { get; }
-    public STKokoro(string binPath, string configPath)
+    public STKokoro(string binPath, string configPath, string outputDevice = "")
     {
         this.configPath = configPath;
         modelTask = LoadModelAsync();
@@ -33,7 +33,7 @@ public class STKokoro : ITextToSpeech
         Tokenizer.eSpeakNGPath = Path.Join(binPath, "espeak");
         KokoroVoiceManager.LoadVoicesFromPath(Path.Join(binPath,"voices"));
         kv = KokoroVoiceManager.GetVoice("af_bella");
-        AudioPlayer = new AudioPlayer();
+        AudioPlayer = new AudioPlayer(outputDevice);
     }
 
     private async Task<IPA?> LoadDictionaryAsync(string path)

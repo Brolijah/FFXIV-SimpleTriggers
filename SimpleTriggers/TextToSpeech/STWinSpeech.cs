@@ -9,9 +9,9 @@ public class STWinSpeech : ITextToSpeech
     public AudioPlayer AudioPlayer { get; }
     private SpeechSynthesizer synth {get; init;}
     private MemoryStream? stream;
-    public STWinSpeech()
+    public STWinSpeech(string outputDevice = "")
     {
-        AudioPlayer = new AudioPlayer();
+        AudioPlayer = new AudioPlayer(outputDevice);
         synth = new SpeechSynthesizer();
         synth.SpeakCompleted += OnSpeakCompleted;
     }
