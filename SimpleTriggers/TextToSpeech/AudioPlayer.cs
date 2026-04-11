@@ -20,7 +20,7 @@ public class AudioPlayer : IDisposable
 
     public AudioPlayer(string deviceId = "")
     {
-        waveOut = new WaveOutEvent() { DeviceNumber = DeviceIdToNumber(deviceId) };
+        waveOut = new WaveOutEvent() { DeviceNumber = DeviceIdToNumber(deviceId), DesiredLatency = 150 };
         new Thread(async() => {
             while(!hasExited) {
                 await Task.Delay(50);
@@ -66,7 +66,7 @@ public class AudioPlayer : IDisposable
         {
             waveOut.Stop();
             waveOut.Dispose();
-            waveOut = new WaveOutEvent() { DeviceNumber = deviceId };
+            waveOut = new WaveOutEvent() { DeviceNumber = deviceId, DesiredLatency = 150 };
         } finally { semaphore.Release(); }
     }
 

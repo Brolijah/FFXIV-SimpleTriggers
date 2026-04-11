@@ -20,6 +20,7 @@ static public class AudioDevicesUI
 {
     private static bool failed = false;
     private static List<AudioDeviceInfo> DeviceCache = [];
+    private static string DefaultDeviceName = "";
 
     public static void RefreshDeviceList()
     {
@@ -29,6 +30,7 @@ static public class AudioDevicesUI
         {
             using(var enumerator = new MMDeviceEnumerator())
             {
+                DefaultDeviceName = enumerator.GetDefaultAudioEndpoint(DataFlow.Render, Role.Console).FriendlyName;
                 var devices = enumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active);
                 foreach(var d in devices)
                 {
@@ -41,22 +43,6 @@ static public class AudioDevicesUI
         }
     }
 
-    public static string GetDefaultDeviceName()
-    {
-        try
-        {
-            using(var enumerator = new MMDeviceEnumerator())
-            {
-                var d = enumerator.GetDefaultAudioEndpoint(DataFlow.Render, Role.Console);
-                return d.FriendlyName + " (Default)";
-            }
-        } catch (Exception e)
-        {
-            STLog.Log.Error(e, "Exception caught:");
-        }
-        return "Unknown";
-    }
-
     public static void DrawAudioDeviceBox(Plugin plugin)
     {
         if(failed)
@@ -66,9 +52,9 @@ static public class AudioDevicesUI
         }
 
         ImGui.SetNextItemWidth(400 * ImGuiHelpers.GlobalScale);
-        using (var box = ImRaii.Combo("Output Device", DeviceCache.FirstOrDefault(d => d.ID.Equals(plugin.Configuration.AudioOutputDevice))?.Name ?? GetDefaultDeviceName()))
+        using (var box = ImRaii.Combo("Output Device", DeviceCache.FirstOrDefault(d => d.ID.Equals(plugin.Configuration.AudioOutputDevice))?.Name ?? (DefaultDeviceName + " (Default)")))
         {
-            if(ImGui.IsWindowAppearing())
+            if(ImGui.IsWindowAppearing()) // only occurs when the box is opening
             {
                 RefreshDeviceList();
             }

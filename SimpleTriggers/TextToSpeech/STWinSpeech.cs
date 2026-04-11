@@ -20,7 +20,7 @@ public class STWinSpeech : ITextToSpeech
     {
         try
         {
-            synth.SelectVoice(voice);
+            if(voice.Length != 0) synth.SelectVoice(voice);
         } catch (Exception e)
         {
             STLog.Log.Warning(e, $"Voice \"{voice}\" not found.");
