@@ -1,5 +1,5 @@
 # Simple Triggers
-![Version](https://img.shields.io/github/v/release/Brolijah/SimpleTriggers)
+[![Version](https://img.shields.io/github/v/release/Brolijah/SimpleTriggers)](https://github.com/Brolijah/SimpleTriggers/releases)
 [![Downloads](https://img.shields.io/endpoint?url=https://qzysathwfhebdai6xgauhz4q7m0mzmrf.lambda-url.us-east-1.on.aws/SimpleTriggers)](https://github.com/Brolijah/SimpleTriggers)
 ![Lines of Code](https://aschey.tech/tokei/github/Brolijah/SimpleTriggers?category=code)
 ![Last Commit](https://img.shields.io/github/last-commit/Brolijah/SimpleTriggers)
@@ -21,6 +21,7 @@ Message history is never saved outside of the plugin running and is lost when th
 * Commands:
   * `/simpletriggers` or `/strig`
     * `enable`/`on` or `disable`/`off` to activate or deactivate the whole trigger system.
+    * `toggle` flips the trigger system to active or inactive (same as above but as a 1-command toggle)
     * `speak <phrase>` will read aloud the requested phrase using your configured TTS.
   * `/stspeak <phrase>` same as the above speak argument, just as a shorter command.
 

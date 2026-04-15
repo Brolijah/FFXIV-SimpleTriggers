@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using System.Threading;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
@@ -18,7 +19,8 @@ public class AudioDeviceInfo
 
 static public class AudioDevicesUI
 {
-    private static bool failed = false;
+    private volatile static bool failed = false;
+    private volatile static bool scanning = false;
     private static List<AudioDeviceInfo> DeviceCache = [];
     private static string DefaultDeviceName = "";
 
@@ -26,20 +28,26 @@ static public class AudioDevicesUI
     {
         failed = false;
         DeviceCache = new();
-        try
+        if(!scanning)
         {
-            using(var enumerator = new MMDeviceEnumerator())
-            {
-                DefaultDeviceName = enumerator.GetDefaultAudioEndpoint(DataFlow.Render, Role.Console).FriendlyName;
-                var devices = enumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active);
-                foreach(var d in devices)
+            scanning = true;
+            new Thread(() => {
+            var tempCache = new List<AudioDeviceInfo>();
+            try {
+                using(var enumerator = new MMDeviceEnumerator())
                 {
-                    DeviceCache.Add(new AudioDeviceInfo { Name = d.FriendlyName, ID = d.ID });
+                    DefaultDeviceName = enumerator.GetDefaultAudioEndpoint(DataFlow.Render, Role.Console).FriendlyName;
+                    var devices = enumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active);
+                    foreach(var d in devices)
+                    {
+                        tempCache.Add(new AudioDeviceInfo { Name = d.FriendlyName, ID = d.ID });
+                    }
+                    DeviceCache = tempCache;
                 }
-            }
-        } catch (Exception e) {
-            STLog.Log.Error(e, "Exception caught:");
-            failed = true;
+            } catch (Exception e) {
+                STLog.Log.Error(e, "Exception caught:");
+                failed = true;
+            } finally { scanning = false; }}) { IsBackground = true }.Start();
         }
     }
 
@@ -51,31 +59,30 @@ static public class AudioDevicesUI
             return;
         }
 
-        ImGui.SetNextItemWidth(400 * ImGuiHelpers.GlobalScale);
-        using (var box = ImRaii.Combo("Output Device", DeviceCache.FirstOrDefault(d => d.ID.Equals(plugin.Configuration.AudioOutputDevice))?.Name ?? (DefaultDeviceName + " (Default)")))
+        if(DeviceCache.Count > 0)
         {
-            if(ImGui.IsWindowAppearing()) // only occurs when the box is opening
+            ImGui.SetNextItemWidth(400 * ImGuiHelpers.GlobalScale);
+            using (var box = ImRaii.Combo("Output Device", DeviceCache.FirstOrDefault(d => d.ID.Equals(plugin.Configuration.AudioOutputDevice))?.Name ?? (DefaultDeviceName + " (Default)")))
             {
-                RefreshDeviceList();
-            }
-            
-            if (box)
-            {
-                for(var i = 0; i < DeviceCache.Count; ++i)
+                if(ImGui.IsWindowAppearing()) // only occurs when the box is opening
                 {
-                    if(ImGui.Selectable(DeviceCache[i].Name))
+                    //RefreshDeviceList();
+                }
+                
+                if (box)
+                {
+                    foreach(var dc in DeviceCache)
                     {
-                        plugin.SetTTSOutputDevice(plugin.Configuration.AudioOutputDevice = DeviceCache[i].ID);
-                        plugin.Configuration.Save();
+                        if(ImGui.Selectable(dc.Name))
+                        {
+                            plugin.SetTTSOutputDevice(plugin.Configuration.AudioOutputDevice = dc.ID);
+                            plugin.Configuration.Save();
+                        }
                     }
                 }
             }
-        }
-
-        // Either it isn't populated yet or the user doesn't have any devices??
-        if(DeviceCache.Count == 0)
-        {
-            ImGui.TextColoredWrapped(new Vector4(1.0f, 1.0f, 0, 1.0f), "No audio devices were found for your system!!");
+        } else { // Either it isn't populated yet or the user doesn't have any devices??
+            ImGui.TextColoredWrapped(new Vector4(1.0f, 1.0f, 0, 1.0f), "No audio devices were found for your system!!");            
         }
     }
 }
