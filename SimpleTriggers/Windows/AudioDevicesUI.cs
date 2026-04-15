@@ -64,11 +64,6 @@ static public class AudioDevicesUI
             ImGui.SetNextItemWidth(400 * ImGuiHelpers.GlobalScale);
             using (var box = ImRaii.Combo("Output Device", DeviceCache.FirstOrDefault(d => d.ID.Equals(plugin.Configuration.AudioOutputDevice))?.Name ?? (DefaultDeviceName + " (Default)")))
             {
-                if(ImGui.IsWindowAppearing()) // only occurs when the box is opening
-                {
-                    //RefreshDeviceList();
-                }
-                
                 if (box)
                 {
                     foreach(var dc in DeviceCache)
@@ -82,7 +77,11 @@ static public class AudioDevicesUI
                 }
             }
         } else { // Either it isn't populated yet or the user doesn't have any devices??
-            ImGui.TextColoredWrapped(new Vector4(1.0f, 1.0f, 0, 1.0f), "No audio devices were found for your system!!");            
+            ImGui.TextColoredWrapped(new Vector4(1.0f, 1.0f, 0, 1.0f), "No audio devices were found for your system!!");
+            if(ImGui.Button("Scan again?"))
+            {
+                RefreshDeviceList();
+            }
         }
     }
 }
