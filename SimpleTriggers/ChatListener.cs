@@ -4,6 +4,7 @@ using System.Text;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Plugin.Services;
+using SimpleTriggers.GameEnums;
 using SimpleTriggers.SeFunctions;
 
 namespace SimpleTriggers;
@@ -14,6 +15,20 @@ internal class ChatListener : IDisposable
     private readonly HashSet<char> blacklist = [
         (char)SeIconChar.ArrowRight, (char)SeIconChar.LinkMarker, (char)SeIconChar.Buff, (char)SeIconChar.Debuff
     ];
+
+    // These are XivChatTypes (known and undocumented ones) that log information such as
+    // "Player recovered XXXX HP" or "Enemy received XXXX damage." A few of these are
+    // also messages such as "attack missed" or "fully resisted."
+    private readonly HashSet<int> DamageAndHealingSources = [
+        2217, 2221, 2729, 2857,
+        4269, 4397, 4777, 4778, 4905, 4906,
+        8493, 8745, 8746, 8749, 8873, 8874, 9001, 9002,
+        10409, 10537, 10793,
+        12457, 12585, 12586, 12841,
+        18605, 18733, 19113, 19241,
+        23085, 23209, 23337
+    ];
+
     private readonly Plugin plugin;
     private readonly IChatGui chatGui;
 
@@ -46,13 +61,12 @@ internal class ChatListener : IDisposable
         if(type == XivChatType.Debug) return;
 
         // Check our channel filter first
-        if(!plugin.Configuration.ChannelReadAllTypes)
-        {
-            if(!plugin.Configuration.ChannelTypeFilter.Contains((int)type))
-            {
-                return;
-            }
-        }
+        if(!plugin.Configuration.ChannelReadAllTypes && !plugin.Configuration.ChannelTypeFilter.Contains((int)type))
+        { return; }
+
+        // Check if we're ignoring healing and damage sources
+        if(plugin.Configuration.IgnoreDamageAndHealing && DamageAndHealingSources.Contains((int)type))
+        { return; }
         
         var msgStr = SanitizeString(message.ToString());
         if(plugin.Configuration.EnableTriggers)
@@ -95,7 +109,11 @@ internal class ChatListener : IDisposable
             {
                 plugin.ChatLog.Dequeue();
             }
-            plugin.ChatLog.Enqueue(msgStr);
+            if(plugin.doIncludeChatTypeInfo)
+            {
+                var chatType = Enum.IsDefined<AdditionalChatType>((AdditionalChatType)type) ? ((AdditionalChatType)type).ToString() : type.ToString();
+                plugin.ChatLog.Enqueue($"{{{chatType}}} : {msgStr}");
+            } else { plugin.ChatLog.Enqueue(msgStr); }
         }
     }
 }

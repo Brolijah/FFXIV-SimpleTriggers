@@ -41,7 +41,7 @@ public class MainWindow : Window, IDisposable
     private SelectionState state;
 
     public MainWindow(Plugin plugin, string version)
-        : base($"{plugin.Name} v{version}##WindowSTrigger", ImGuiWindowFlags.NoScrollbar)
+        : base($"{plugin.Name} v{version}##WindowSTrigger")//, ImGuiWindowFlags.NoScrollbar)
     {
         SizeConstraints = new WindowSizeConstraints
         {
@@ -51,6 +51,7 @@ public class MainWindow : Window, IDisposable
 
         this.plugin = plugin;
         this.state = new();
+        AudioDevicesUI.RefreshDeviceList();
     }
 
     public void Dispose() { }
@@ -117,6 +118,7 @@ public class MainWindow : Window, IDisposable
                 {
                     AddTrigger(trigRef, plugin.DefaultCategoryName);
                     RefreshSelectionState(editingCatName, true);
+                    plugin.Configuration.Save();
                 }
             }
             updateConfig = true;
@@ -148,6 +150,7 @@ public class MainWindow : Window, IDisposable
                     // Insert trigger into new category (existing or will create a new one)
                     AddTrigger(state.activeTrigger, editingCatName);
                     RefreshSelectionState(editingCatName, true);
+                    plugin.Configuration.Save();
                 }
                 state.activeCategory.Name = editingCatName;
                 updateConfig = true;
@@ -258,6 +261,7 @@ public class MainWindow : Window, IDisposable
         {
             AddTrigger(trigRef, state.activeCategory?.Name ?? plugin.DefaultCategoryName);
             RefreshSelectionState(state.activeCategory?.Name ?? plugin.DefaultCategoryName, true);
+            plugin.Configuration.Save();
         }
 
         // Remove Trigger/Category
@@ -272,6 +276,7 @@ public class MainWindow : Window, IDisposable
                     var catname = state.activeCategory!.Name;
                     RemoveTrigger(state.trigSubIndex, catname);
                     state.Reset();
+                    plugin.Configuration.Save();
                 } else {
                     // Remove whole category
                     // Use popup modal to confirm removing the whole category
@@ -357,7 +362,8 @@ public class MainWindow : Window, IDisposable
         ImGui.SameLine(ImGui.GetWindowWidth()-(125*ImGuiHelpers.GlobalScale));
         if(ImGui.Button("Clear All Triggers") && ImGui.GetIO().KeyShift)
         {
-            ClearAllTriggers();
+            plugin.Configuration.TriggerTree.Clear();
+            plugin.Configuration.Save();
         }
         ImGuiCustom.HoverTooltip("Hold SHIFT+Click to Clear All");
 
@@ -425,6 +431,7 @@ public class MainWindow : Window, IDisposable
                                         {
                                             RemoveTrigger(subIdx, category.Name);
                                             state.Reset();
+                                            plugin.Configuration.Save();
                                             break; // exit the loop because the list is now invalidated
                                         }
                                     }
@@ -467,7 +474,9 @@ public class MainWindow : Window, IDisposable
         ImGui.SameLine();
         if(ImGuiComponents.IconButton(FontAwesomeIcon.Times)) { chatFilter.Clear(); }
         ImGui.SameLine();
-        if(ImGui.Button("Clear Log")) { ClearLog(); state.chatIndex = -1; }
+        if(ImGui.Button("Clear Log")) { plugin.ChatLog.Clear(); state.chatIndex = -1; }
+        ImGui.SameLine();
+        ImGui.TextColoredWrapped(new Vector4(1.0f, 1.0f, 1.0f, 0.8f), $"Log Count: {plugin.ChatLog.Count}");
         ImGui.Separator();
 
         using (var child = ImRaii.Child("ChatBoxWithScrollBar", Vector2.Zero, true))
@@ -496,6 +505,7 @@ public class MainWindow : Window, IDisposable
                                 {
                                     AddTrigger(new TriggerEntry(ses), plugin.DefaultCategoryName);
                                     state.chatIndex = -1;
+                                    plugin.Configuration.Save();
                                 }
                             }
                         }
@@ -524,7 +534,7 @@ public class MainWindow : Window, IDisposable
 
             if(ImGui.Checkbox("Log Chat History?", ref plugin.doLogChatHistory) && !plugin.doLogChatHistory)
             {
-                ClearLog(); // clear when unchecked
+                //plugin.ChatLog.Clear();
             }
 
             ImGui.Text($"How many entries should the chat history keep saved? (Max {plugin.MaxLogHistoryCeiling})");
@@ -536,6 +546,7 @@ public class MainWindow : Window, IDisposable
                 plugin.Configuration.MaxLogHistory = Math.Clamp(plugin.Configuration.MaxLogHistory, 1, plugin.MaxLogHistoryCeiling);
                 plugin.Configuration.Save();
             }
+            ImGui.Checkbox("DEBUG: Include ChatType Info", ref plugin.doIncludeChatTypeInfo);
 
             ImGui.NewLine();
         }
@@ -543,7 +554,7 @@ public class MainWindow : Window, IDisposable
         // Channel Settings
         if(ImGui.CollapsingHeader("Channel Settings", ImGuiTreeNodeFlags.None))
         {
-            ImGui.TextColoredWrapped(new Vector4(1.0f, 1.0f, 1.0f, 0.8f), "You probably want to leave this enabled.");
+            ImGui.TextColoredWrapped(new Vector4(1.0f, 1.0f, 1.0f, 0.8f), "You probably want to leave these enabled.");
             if(ImGui.Checkbox("Enable All", ref plugin.Configuration.ChannelReadAllTypes))
             {
                 plugin.Configuration.Save();
@@ -554,18 +565,33 @@ public class MainWindow : Window, IDisposable
             ImGui.PopFont();
             ImGuiCustom.HoverTooltip(
                 "If you want finer control over what types of messages to react to,\n"+
-                "then you can disable this. If your CPU is struggling with having all\n"+
-                "channels enabled, then this might help you."
+                "then you can disable this. Or, if your CPU is struggling with having\n"+
+                "all channels enabled, then turning this off this might help you."
             );
 
-            ImGui.SameLine(ImGui.GetWindowWidth()-(100*ImGuiHelpers.GlobalScale));
+            ImGui.SameLine(ImGui.GetWindowWidth()-(110*ImGuiHelpers.GlobalScale));
             if(ImGui.Button("Reset Filters") && ImGui.GetIO().KeyShift)
             {
                 plugin.Configuration.ChannelReadAllTypes = true;
+                plugin.Configuration.IgnoreDamageAndHealing = true;
                 plugin.Configuration.ChannelTypeFilter.Clear();
                 plugin.Configuration.Save();
             }
             ImGuiCustom.HoverTooltip("Hold SHIFT+Click to Reset");
+
+            if(ImGui.Checkbox("Ignore Damage and Healing sources.", ref plugin.Configuration.IgnoreDamageAndHealing))
+            {
+                plugin.Configuration.Save();
+            }
+            ImGui.SameLine();
+            ImGui.PushFont(UiBuilder.IconFont);
+            ImGui.Text(FontAwesomeIcon.ExclamationCircle.ToIconString());
+            ImGui.PopFont();
+            ImGuiCustom.HoverTooltip(
+                "It is recommended to leave this enabled.\n"+
+                "The bulk of the battle log originates from damage and healing\n"+
+                "sources. You will save a lot of CPU cycles leaving this checked."
+            );
 
             if(!plugin.Configuration.ChannelReadAllTypes)
             {
@@ -575,7 +601,7 @@ public class MainWindow : Window, IDisposable
                 {
                     if(tree)
                     {
-                        using(var table = ImRaii.Table("##CommonXivChatTypes",2))
+                        using(var table = ImRaii.Table("##CommonXivChatTypes",2, ImGuiTableFlags.SizingFixedFit))
                         {
                             if(table)
                             {
@@ -608,7 +634,7 @@ public class MainWindow : Window, IDisposable
                 {
                     if(tree)
                     {
-                        using(var table = ImRaii.Table("##UndocumentedXivChatTypes", 2))
+                        using(var table = ImRaii.Table("##UndocumentedXivChatTypes", 2, ImGuiTableFlags.SizingFixedFit))
                         {
                             if(table)
                             {
@@ -674,19 +700,8 @@ public class MainWindow : Window, IDisposable
             AudioDevicesUI.DrawAudioDeviceBox(plugin);
         }
     }
-
-    void ClearLog()
-    {
-        plugin.ChatLog.Clear();
-    }
     
-    void ClearAllTriggers()
-    {
-        plugin.Configuration.TriggerTree.Clear();
-        plugin.Configuration.Save();
-    }
-
-    void AddTrigger(TriggerEntry trigger, string categoryName)
+    private void AddTrigger(TriggerEntry trigger, string categoryName)
     {
         var trig = new TriggerEntry(trigger);
         if(trig.expression.Length == 0) trig.expression = "New Trigger";
@@ -698,10 +713,9 @@ public class MainWindow : Window, IDisposable
         {
             plugin.Configuration.TriggerTree.Add(new TriggerCategory(categoryName, [trig]));
         }
-        plugin.Configuration.Save();
     }
 
-    void RemoveTrigger(int idx, string categoryName)
+    private void RemoveTrigger(int idx, string categoryName)
     {
         var category = plugin.Configuration.TriggerTree[categoryName];
         if(category is not null)
@@ -711,11 +725,10 @@ public class MainWindow : Window, IDisposable
             {
                 plugin.Configuration.TriggerTree.Remove(categoryName);
             }
-            plugin.Configuration.Save();
         }
     }
 
-    void RefreshSelectionState(string categoryName, bool openActiveCategory, bool stopAtCategory=false)
+    private void RefreshSelectionState(string categoryName, bool openActiveCategory, bool stopAtCategory=false)
     {
         var tempIdx = 0;
         state.activeCategory = plugin.Configuration.TriggerTree[categoryName];

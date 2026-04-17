@@ -34,6 +34,7 @@ public class Configuration : IPluginConfiguration
     public string AudioOutputDevice = "";
     public bool AllowAudioBoost = false; // Lets the user boost the volume above a normally safe amount
     public bool ChannelReadAllTypes = true;
+    public bool IgnoreDamageAndHealing = true;
     public SortedSet<int> ChannelTypeFilter = [];
     public TextToSpeechType TTSProvider = TextToSpeechType.None;
     public KokoroConfig Kokoro { get; set; } = new();

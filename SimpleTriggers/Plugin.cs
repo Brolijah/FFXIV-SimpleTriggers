@@ -26,6 +26,7 @@ public sealed class Plugin : IDalamudPlugin
     internal readonly string DefaultCategoryName = "Default";
     internal uint MaxLogHistoryCeiling = 10000; // Hard coded limit. Who says? Me says.
     internal bool doLogChatHistory = false; // transient value, must be enabled by the user
+    internal bool doIncludeChatTypeInfo = false; // includes the ChatType information next to chat messages
     public Configuration Configuration { get; init; }
     
     public readonly WindowSystem WindowSystem = new("Simple Triggers");
