@@ -8,5 +8,8 @@
     "chat", "tts",
     "triggers",
     "alerts"
-  ]
+  ],
+  "InternalName": "SimpleTriggers",
+  "RepoUrl": "https://github.com/Brolijah/SimpleTriggers",
+  "IconUrl": "https://raw.githubusercontent.com/Brolijah/SimpleTriggers/master/Data/icon.png"
 }
