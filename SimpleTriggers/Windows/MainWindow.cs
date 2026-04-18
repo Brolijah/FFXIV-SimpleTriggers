@@ -12,7 +12,7 @@ using SimpleTriggers.Gui;
 using SimpleTriggers.SeFunctions;
 using SimpleTriggers.TextToSpeech;
 using SimpleTriggers.Triggers;
-using SimpleTriggers.GameEnums;
+using SimpleTriggers.ChatEnums;
 
 namespace SimpleTriggers.Windows;
 
@@ -273,8 +273,7 @@ public class MainWindow : Window, IDisposable
                 // Remove a single trigger
                 if(state.activeTrigger is not null)
                 {
-                    var catname = state.activeCategory!.Name;
-                    RemoveTrigger(state.trigSubIndex, catname);
+                    RemoveTrigger(state.trigSubIndex, state.activeCategory.Name);
                     state.Reset();
                     plugin.Configuration.Save();
                 } else {
@@ -322,7 +321,7 @@ public class MainWindow : Window, IDisposable
                     }
                 } else if(state.activeCategory is not null) // Reordering Categories inside the Tree
                 {
-                    var index = plugin.Configuration.TriggerTree.GetIndexOfCategory(state.activeCategory.Name);
+                    var index = plugin.Configuration.TriggerTree.GetIndexOfCategory(state.activeCategory);
                     if(index > 0)
                     {
                         plugin.Configuration.TriggerTree.SwapCategories(index, --index);
@@ -596,29 +595,32 @@ public class MainWindow : Window, IDisposable
             if(!plugin.Configuration.ChannelReadAllTypes)
             {
                 ImGui.Spacing();
-                // Common supported channel types
-                using(var tree = ImRaii.TreeNode("Common Channel Types"))
+                // Common player channel types
+                using(var tree = ImRaii.TreeNode("Player Chat Channels"))
                 {
                     if(tree)
                     {
-                        using(var table = ImRaii.Table("##CommonXivChatTypes",2, ImGuiTableFlags.SizingFixedFit))
+                        using var table = ImRaii.Table("##PlayerChannelTypes", 2, ImGuiTableFlags.SizingFixedFit);
+                        if (table)
                         {
-                            if(table)
+                            var channels = Enum.GetValues<ChatType>();
+                            foreach (var c in channels)
                             {
-                                var channels = Enum.GetValues<XivChatType>();
-                                foreach(var c in channels)
+                                if (c is ChatType.Debug or ChatType.CrossParty)
+                                    continue;
+
+                                if (ChatTypeExtensions.IsPlayerChat(c))
                                 {
-                                    if(c == XivChatType.None || c == XivChatType.Debug || c == XivChatType.Urgent || c == XivChatType.CrossParty)
-                                        continue;
-                                    
                                     ImGui.TableNextColumn();
                                     var selected = plugin.Configuration.ChannelTypeFilter.Contains((int)c);
-                                    if(ImGui.Checkbox(c.GetDetails()?.FancyName ?? c.ToString(), ref selected))
+                                    if (ImGui.Checkbox(c.ToString(), ref selected))
                                     {
-                                        if(selected)
+                                        if (selected)
                                         {
                                             plugin.Configuration.ChannelTypeFilter.Add((int)c);
-                                        } else {
+                                        }
+                                        else
+                                        {
                                             plugin.Configuration.ChannelTypeFilter.Remove((int)c);
                                         }
                                         plugin.Configuration.Save();
@@ -629,26 +631,62 @@ public class MainWindow : Window, IDisposable
                     }
                 }
                 ImGui.Spacing();
-                // Most of the combat messages are these
-                using(var tree = ImRaii.TreeNode("Less Common Types"))
+                // Combat Specific Chat Messages
+                using(var tree = ImRaii.TreeNode("Battle Channels"))
                 {
                     if(tree)
                     {
-                        using(var table = ImRaii.Table("##UndocumentedXivChatTypes", 2, ImGuiTableFlags.SizingFixedFit))
+                        using var table = ImRaii.Table("##CombatChannelTypes", 2, ImGuiTableFlags.SizingFixedFit);
+                        if (table)
                         {
-                            if(table)
+                            var extras = Enum.GetValues<ChatType>();
+                            foreach (var c in extras)
                             {
-                                var extras = Enum.GetValues<AdditionalChatType>();
-                                foreach(var c in extras)
+                                if(ChatTypeExtensions.IsBattle(c))
                                 {
                                     ImGui.TableNextColumn();
                                     var selected = plugin.Configuration.ChannelTypeFilter.Contains((int)c);
-                                    if(ImGui.Checkbox(c.ToString(), ref selected))
+                                    if (ImGui.Checkbox(c.ToString(), ref selected))
                                     {
-                                        if(selected)
+                                        if (selected)
                                         {
                                             plugin.Configuration.ChannelTypeFilter.Add((int)c);
-                                        } else {
+                                        }
+                                        else
+                                        {
+                                            plugin.Configuration.ChannelTypeFilter.Remove((int)c);
+                                        }
+                                        plugin.Configuration.Save();
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                ImGui.Spacing();
+                // Announcement Channels
+                using(var tree = ImRaii.TreeNode("Announcement Channels"))
+                {
+                    if(tree)
+                    {
+                        using var table = ImRaii.Table("##AnnouncementTypes", 2, ImGuiTableFlags.SizingFixedFit);
+                        if (table)
+                        {
+                            var extras = Enum.GetValues<ChatType>();
+                            foreach (var c in extras)
+                            {
+                                if(ChatTypeExtensions.IsAnnouncement(c))
+                                {
+                                    ImGui.TableNextColumn();
+                                    var selected = plugin.Configuration.ChannelTypeFilter.Contains((int)c);
+                                    if (ImGui.Checkbox(c.ToString(), ref selected))
+                                    {
+                                        if (selected)
+                                        {
+                                            plugin.Configuration.ChannelTypeFilter.Add((int)c);
+                                        }
+                                        else
+                                        {
                                             plugin.Configuration.ChannelTypeFilter.Remove((int)c);
                                         }
                                         plugin.Configuration.Save();

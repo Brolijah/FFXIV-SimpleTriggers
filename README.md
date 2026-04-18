@@ -39,6 +39,6 @@ Message history is never saved outside of the plugin running and is lost when th
 * Kokoro C# package from [Lyrcaxis/KokoroSharp](https://github.com/Lyrcaxis/KokoroSharp)
   * Original model: [Kokoro TTS](https://huggingface.co/hexgrad/Kokoro-82M)
 * Sound Effects functions from [Ottermandias/ChatAlerts](https://github.com/Ottermandias/ChatAlerts)
-* Extra chat types from [karashiiro/TextToTalk](https://github.com/karashiiro/TextToTalk)
+* Extended chat type info from [Infiziert90/ChatTwo](https://github.com/Infiziert90/ChatTwo)
 * Pre-Built English IPA Dictionary from [open-dict-data/ipa-dict](https://github.com/open-dict-data/ipa-dict)
 * Text-to-IPA from [qkmaxware/CsPhonetics](https://github.com/qkmaxware/CsPhonetics) but modified for this project.
