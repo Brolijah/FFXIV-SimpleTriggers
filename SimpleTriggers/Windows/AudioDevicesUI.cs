@@ -56,13 +56,20 @@ static public class AudioDevicesUI
                 if(failed)
                 {
                     try {
+                        var isWindows = OSHelper.IsWindows(); // Description is truncated under wine
                         var devices = DirectSoundOut.Devices;
                         var firstDevice = devices.FirstOrDefault();
-                        if(firstDevice is not null) DefaultDeviceName = firstDevice.Description.Length < 32 ? firstDevice.Description : firstDevice.Description[..32] + "...";
+                        if(firstDevice is not null)
+                        {
+                            if(isWindows) DefaultDeviceName = firstDevice.Description;
+                            else DefaultDeviceName = firstDevice.Description.Length < 32 ? firstDevice.Description : firstDevice.Description[..32] + "...";
+                        }
                         var tempCache = new List<AudioDeviceInfo>(devices.Count());
                         foreach(var dev in DirectSoundOut.Devices)
                         {
-                            var name = dev.Description.Length < 32 ? dev.Description : dev.Description[..32] + "...";
+                            string name;
+                            if(isWindows) name = dev.Description;
+                            else name = dev.Description.Length < 32 ? dev.Description : dev.Description[..32] + "...";
                             tempCache.Add(new AudioDeviceInfo { Name = name, ID = dev.Guid.ToString("B") });
                         }
                         DeviceCache = tempCache.ToImmutableList();
