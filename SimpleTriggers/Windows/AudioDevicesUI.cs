@@ -22,8 +22,8 @@ public class AudioDeviceInfo
 
 static public class AudioDevicesUI
 {
-    private volatile static bool failed = false;
-    private volatile static bool scanning = false;
+    private static volatile bool failed = false;
+    private static volatile bool scanning = false;
     private static ImmutableList<AudioDeviceInfo> DeviceCache = [];
     private static string DefaultDeviceName = "";
 

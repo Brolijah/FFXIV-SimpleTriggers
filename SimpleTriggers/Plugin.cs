@@ -10,6 +10,7 @@ using SimpleTriggers.Windows;
 using SimpleTriggers.TextToSpeech;
 using SimpleTriggers.Logger;
 using System;
+using System.Threading;
 
 namespace SimpleTriggers;
 
@@ -37,6 +38,7 @@ public sealed class Plugin : IDalamudPlugin
     private ChatListener ChatListener { get; init; }
     private ITextToSpeech? TextToSpeech { get; set; }
     private AudioPlayer AudioPlayer { get; set; }
+    private readonly SemaphoreSlim speakGate = new(1,1);
     internal Queue<string> ChatLog { get; init; }
     
     public Plugin()
@@ -201,17 +203,23 @@ public sealed class Plugin : IDalamudPlugin
     {
         if(message.Length > 0)
         {
-            switch (Configuration.TTSProvider)
+            Task.Run(async () =>
             {
-                case TextToSpeechType.Kokoro:
-                    Task.Run(() => TextToSpeech?.Speak(message, Configuration.Kokoro.UseEspeak));
-                    break;
-                case TextToSpeechType.WindowsSystem:
-                    Task.Run(() => TextToSpeech?.Speak(message));
-                    break;
-                default:
-                    break;
-            }
+                await speakGate.WaitAsync();
+                try {
+                    switch (Configuration.TTSProvider)
+                    {
+                        case TextToSpeechType.Kokoro:
+                            TextToSpeech?.Speak(message, Configuration.Kokoro.UseEspeak);
+                            break;
+                        case TextToSpeechType.WindowsSystem:
+                            TextToSpeech?.Speak(message);
+                            break;
+                        default:
+                            break;
+                    }
+                } finally { speakGate.Release(); }
+            });
         }
     }
 
