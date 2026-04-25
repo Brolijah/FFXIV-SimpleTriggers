@@ -4,13 +4,14 @@ using Dalamud.Plugin;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin.Services;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Reflection;
 using SimpleTriggers.Windows;
 using SimpleTriggers.TextToSpeech;
 using SimpleTriggers.Logger;
 using System;
-using System.Threading;
 
 namespace SimpleTriggers;
 
@@ -38,8 +39,10 @@ public sealed class Plugin : IDalamudPlugin
     private ChatListener ChatListener { get; init; }
     private ITextToSpeech? TextToSpeech { get; set; }
     private AudioPlayer AudioPlayer { get; set; }
-    private readonly SemaphoreSlim speakGate = new(1,1);
     internal Queue<string> ChatLog { get; init; }
+    private ConcurrentQueue<string> SpeakQueue = new();
+    private Lock speakLock = new();
+    private bool ttsInProgress = false;
     
     public Plugin()
     {
@@ -203,27 +206,45 @@ public sealed class Plugin : IDalamudPlugin
     {
         if(message.Length > 0)
         {
-            Task.Run(async () =>
+            SpeakQueue.Enqueue(message);
+            lock(speakLock)
             {
-                await speakGate.WaitAsync();
-                try {
-                    switch (Configuration.TTSProvider)
-                    {
-                        case TextToSpeechType.Kokoro:
-                            TextToSpeech?.Speak(message, Configuration.Kokoro.UseEspeak);
-                            break;
-                        case TextToSpeechType.WindowsSystem:
-                            TextToSpeech?.Speak(message);
-                            break;
-                        default:
-                            break;
-                    }
-                } finally { speakGate.Release(); }
-            });
+                if(ttsInProgress) return;
+                ttsInProgress = true;
+            }
+            Task.Run(ProcessSpeakQueue);
         }
     }
 
-    internal void StopAudioPlayback(bool clearQueue = false) => AudioPlayer.StopPlayback(clearQueue);
+    private void ProcessSpeakQueue()
+    {
+        while(SpeakQueue.TryDequeue(out var msg))
+        {
+            switch (Configuration.TTSProvider)
+            {
+                case TextToSpeechType.Kokoro:
+                    TextToSpeech?.Speak(msg, Configuration.Kokoro.UseEspeak);
+                    break;
+                case TextToSpeechType.WindowsSystem:
+                    TextToSpeech?.Speak(msg);
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        lock(speakLock)
+        {
+            ttsInProgress = false;
+            if(!SpeakQueue.IsEmpty)
+            {
+                ttsInProgress = true;
+                Task.Run(ProcessSpeakQueue);
+            }
+        }
+    }
+
+    internal void StopAudioPlayback(bool clearQueue = false) { SpeakQueue.Clear(); AudioPlayer.StopPlayback(clearQueue); }
     internal void SetAudioBackend(AudioOutputType type) => AudioPlayer.InitializeAudioBackend(type,null);
     internal void SetAudioOutputDevice(string id) => AudioPlayer.SetOutputDevice(id);
     internal void SetAudioBlending(bool blend) => AudioPlayer.BlendStreams = blend;
