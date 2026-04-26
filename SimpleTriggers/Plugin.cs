@@ -32,16 +32,16 @@ public sealed class Plugin : IDalamudPlugin
     internal uint MaxLogHistoryCeiling = 10000; // Hard coded limit. Who says? Me says.
     internal bool doLogChatHistory = false; // transient value, must be enabled by the user
     internal bool doIncludeChatTypeInfo = false; // includes the ChatType information next to chat messages
-    public Configuration Configuration { get; init; }
+    internal Queue<string> ChatLog { get; init; }
+    internal Configuration Configuration { get; init; }
     
     public readonly WindowSystem WindowSystem = new("Simple Triggers");
     private MainWindow MainWindow { get; init; }
     private ChatListener ChatListener { get; init; }
     private ITextToSpeech? TextToSpeech { get; set; }
     private AudioPlayer AudioPlayer { get; set; }
-    internal Queue<string> ChatLog { get; init; }
-    private ConcurrentQueue<string> SpeakQueue = new();
-    private Lock speakLock = new();
+    private readonly ConcurrentQueue<string> SpeakQueue = new();
+    private readonly Lock speakLock = new();
     private bool ttsInProgress = false;
     
     public Plugin()
@@ -172,7 +172,7 @@ public sealed class Plugin : IDalamudPlugin
 
     private void OnCommandStop(string command, string args)
     {
-        AudioPlayer.StopPlayback(true);
+        StopAudioPlayback(true);
     }
 
     internal void SwapTTSBackend()

@@ -30,7 +30,7 @@ public class TriggerTree
 
     public void Insert(int index, TriggerCategory tc)
     {
-        categories.Insert(0, tc);
+        categories.Insert(index, tc);
     }
 
     public void RemoveAt(int index)
