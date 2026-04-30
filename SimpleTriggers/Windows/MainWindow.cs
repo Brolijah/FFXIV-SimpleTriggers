@@ -143,18 +143,21 @@ public class MainWindow : Window, IDisposable
             if(ImGui.InputText("##CategoryTextBox", ref editingCatName, 128, ImGuiInputTextFlags.EnterReturnsTrue)
             || ImGui.IsItemDeactivatedAfterEdit())
             {
-                // Let's assume we're trying to reassign the category for the current trigger
-                if(state.activeTrigger is not null)
+                if(editingCatName.Length != 0)
                 {
-                    // Remove the trigger from the current category
-                    RemoveTrigger(state.trigSubIndex, state.activeCategory.Name);
-                    // Insert trigger into new category (existing or will create a new one)
-                    AddTrigger(state.activeTrigger, editingCatName);
-                    RefreshSelectionState(editingCatName, true);
-                    plugin.Configuration.Save();
+                    // Let's assume we're trying to reassign the category for the current trigger
+                    if(state.activeTrigger is not null)
+                    {
+                        // Remove the trigger from the current category
+                        RemoveTrigger(state.trigSubIndex, state.activeCategory.Name);
+                        // Insert trigger into new category (existing or will create a new one)
+                        AddTrigger(state.activeTrigger, editingCatName);
+                        RefreshSelectionState(editingCatName, true);
+                        plugin.Configuration.Save();
+                    }
+                    state.activeCategory.Name = editingCatName;
+                    updateConfig = true;   
                 }
-                state.activeCategory.Name = editingCatName;
-                updateConfig = true;
             }
         }
         if(state.activeCategory is null) { ImGui.EndDisabled(); }
