@@ -28,16 +28,6 @@ public class TriggerTree
         categories.Add(tc);
     }
 
-    public void Insert(int index, TriggerCategory tc)
-    {
-        categories.Insert(index, tc);
-    }
-
-    public void RemoveAt(int index)
-    {
-        categories.RemoveAt(index);
-    }
-
     public void Remove(TriggerCategory tc)
     {
         categories.Remove(tc);
