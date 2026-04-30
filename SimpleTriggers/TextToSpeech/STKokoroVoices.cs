@@ -80,7 +80,7 @@ public static class KokoroVoiceHelper
             KokoroVoiceKind.af_heart => "Heart (F) (EN-US)",
             KokoroVoiceKind.af_bella => "Bella (F) (EN-US)",
             KokoroVoiceKind.af_alloy => "Alloy (F) (EN-US)",
-            KokoroVoiceKind.af_aoede => "Aoede(F) (EN-US)",
+            KokoroVoiceKind.af_aoede => "Aoede (F) (EN-US)",
             KokoroVoiceKind.af_jessica => "Jessica (F) (EN-US)",
             KokoroVoiceKind.af_kore => "Kore (F) (EN-US)",
             KokoroVoiceKind.af_nicole => "Nicole (F) (EN-US)",
