@@ -40,7 +40,7 @@ public class MainWindow : Window, IDisposable
     private SelectionState state;
 
     public MainWindow(Plugin plugin, string version)
-        : base($"{plugin.Name} v{version}##WindowSTrigger")//, ImGuiWindowFlags.NoScrollbar)
+        : base($"{plugin.Name} v{version}##WindowSTrigger")
     {
         SizeConstraints = new WindowSizeConstraints
         {
@@ -806,15 +806,11 @@ public class MainWindow : Window, IDisposable
                 tempIdx++;
                 if(c.Name == categoryName)
                 {
-                    if(stopAtCategory) { state.trigSubIndex = -1; }
-                    else               { state.trigSubIndex = c.Triggers.Count-1; }
+                    state.trigSubIndex = stopAtCategory ? -1 : c.Triggers.Count-1;
                     state.activeCategory = c;
                     break;
                 } else if(!c.opened) { continue; }
-                foreach(var t in c.Triggers)
-                {
-                    tempIdx++;
-                }
+                tempIdx += c.Triggers.Count;
             }
             state.trigListIndex = tempIdx + state.trigSubIndex;
             //Log.Debug($"activeCategory.Name == \"{state.activeCategory.Name}\" ;; trigListIndex == {state.trigListIndex} ;; trigSubIndex == {state.trigSubIndex}");
