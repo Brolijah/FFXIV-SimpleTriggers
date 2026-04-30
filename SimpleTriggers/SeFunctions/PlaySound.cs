@@ -5,7 +5,7 @@ namespace SimpleTriggers.SeFunctions
 {
     public sealed class PlaySound
     {
-        public static void Play(Sounds id) {
+        public static unsafe void Play(Sounds id) {
             UIGlobals.PlaySoundEffect((uint)id);
         }
     }

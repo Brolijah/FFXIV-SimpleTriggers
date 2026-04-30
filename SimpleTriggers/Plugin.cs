@@ -33,7 +33,7 @@ public sealed class Plugin : IDalamudPlugin
     internal bool doLogChatHistory = false; // transient value, must be enabled by the user
     internal bool doIncludeChatTypeInfo = false; // includes the ChatType information next to chat messages
     internal Queue<string> ChatLog { get; init; }
-    internal Configuration Configuration { get; init; }
+    public Configuration Configuration { get; init; }
     
     public readonly WindowSystem WindowSystem = new("Simple Triggers");
     private MainWindow MainWindow { get; init; }
@@ -129,27 +129,21 @@ public sealed class Plugin : IDalamudPlugin
         {
             case "on":
             case "enable":
-                Configuration.EnableTriggers = true;
-                Configuration.Save();
-                PrintChatMsg("All triggers are enabled.");
+                SetTriggerState(true);
             break;
             case "off":
             case "disable":
-                Configuration.EnableTriggers = false;
-                Configuration.Save();
-                PrintChatMsg("All triggers are disabled.");
+                SetTriggerState(false);
             break;
             case "toggle":
-                Configuration.EnableTriggers = !Configuration.EnableTriggers;
-                Configuration.Save();
-                PrintChatMsg(string.Format("All triggers are {0}.", Configuration.EnableTriggers ? "enabled" : "disabled"));
+                SetTriggerState(!Configuration.EnableTriggers);
             break;
             case "speak":
                 var msg = args.Split(" ", 2);
                 if(msg.Length > 1) SpeakTTS(msg[1]);
             break;
             case "stop":
-                AudioPlayer.StopPlayback(true);
+                StopAudioPlayback(true);
             break;
 
             default:
@@ -160,9 +154,7 @@ public sealed class Plugin : IDalamudPlugin
 
     private void OnCommandToggle(string command, string args)
     {
-        Configuration.EnableTriggers = !Configuration.EnableTriggers;
-        Configuration.Save();
-        PrintChatMsg(string.Format("All triggers are {0}.", Configuration.EnableTriggers ? "enabled" : "disabled"));
+        SetTriggerState(!Configuration.EnableTriggers);
     }
 
     private void OnCommandSpeak(string command, string args)
@@ -173,6 +165,13 @@ public sealed class Plugin : IDalamudPlugin
     private void OnCommandStop(string command, string args)
     {
         StopAudioPlayback(true);
+    }
+
+    internal void SetTriggerState(bool state)
+    {
+        Configuration.EnableTriggers = state;
+        PrintChatMsg(string.Format("All triggers are {0}.", Configuration.EnableTriggers ? "enabled" : "disabled"));
+        Configuration.Save();
     }
 
     internal void SwapTTSBackend()

@@ -1,10 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Dalamud.Game.Chat;
 using Dalamud.Game.Text;
-using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Plugin.Services;
-using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using SimpleTriggers.ChatEnums;
 using SimpleTriggers.SeFunctions;
 
@@ -43,9 +42,9 @@ internal class ChatListener : IDisposable
         chatGui.ChatMessage -= OnChatMessage;
     }
 
-    private void OnChatMessage(XivChatType type, int timestamp, ref SeString sender, ref SeString message, ref bool isHandled)
+    private void OnChatMessage(IChatMessage chatMessage)
     {
-        var logKind = (ChatType)((int)type & 0x7F);
+        var logKind = (ChatType)chatMessage.LogKind;
         // Ignore messages coming from this plugin or others
         if(logKind == ChatType.Debug) return;
 
@@ -57,7 +56,7 @@ internal class ChatListener : IDisposable
         if(plugin.Configuration.IgnoreDamageAndHealing && (logKind is ChatType.Damage or ChatType.Miss or ChatType.Healing))
         { return; }
         
-        var msgStr = SanitizeString(message.ToString());
+        var msgStr = SanitizeString(chatMessage.Message.ToString());
         if(plugin.Configuration.EnableTriggers)
         {
             foreach(var category in plugin.Configuration.TriggerTree)
@@ -100,9 +99,7 @@ internal class ChatListener : IDisposable
             }
             if(plugin.doIncludeChatTypeInfo)
             {
-                var targetKind = (EntityRelationKind)((((int)type) >>  7) & 0xF);
-                var casterKind = (EntityRelationKind)((((int)type) >> 11) & 0xF);
-                plugin.ChatLog.Enqueue($"{{{logKind}/{targetKind}/{casterKind}/{type}}} : {msgStr}");
+                plugin.ChatLog.Enqueue($"{{{logKind}/{chatMessage.TargetKind}/{chatMessage.SourceKind}}} : {msgStr}");
             } else { plugin.ChatLog.Enqueue(msgStr); }
         }
     }
