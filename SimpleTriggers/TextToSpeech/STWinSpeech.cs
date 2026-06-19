@@ -42,7 +42,7 @@ public class STWinSpeech : ITextToSpeech
     public void SetLanguage(string lang)
     { } // Language is controlled by the user's Windows Settings
 
-    public void Speak(string message, bool extra)
+    public void Speak(string message)
     {
         lock(synthLock)
         {

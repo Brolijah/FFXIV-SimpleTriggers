@@ -23,13 +23,19 @@ public static class ESpeakNgWrapper
             {
                 var esPath = Path.Join(binPath, "espeak");
                 var dllPath = Path.Join(esPath, ESpeakNgNative.LibraryName);
-
                 STLog.Log.Warning($"espeak dll path = {dllPath}");
-                ESpeakNgNative.SetupResolver(Path.Join(esPath, ESpeakNgNative.LibraryName));
 
-                var res = ESpeakNgNative.espeak_Initialize(EsAudioOutput.AUDIO_OUTPUT_SYNCHRONOUS, 0, esPath, EsPhoneme.INIT_PHONEME_IPA);
+                if(!Path.Exists(dllPath))
+                {
+                    STLog.Log.Error("espeak dll not found");
+                    return;
+                }
+                ESpeakNgNative.SetupResolver(dllPath);
+                var res = ESpeakNgNative.espeak_Initialize(EsAudioOutput.AUDIO_OUTPUT_SYNCHRONOUS, 0, esPath, 0);
                 STLog.Log.Warning($"espeak_Initialize returned {res}");
-                _initialized = true;
+
+                if(res != -1) _initialized = true;
+                else STLog.Log.Error("espeak_Initialize failed");
             }
         } catch (Exception e)
         {
@@ -43,21 +49,33 @@ public static class ESpeakNgWrapper
         return _initialized;
     }
 
-    public static string ToPhonemes(string text)
+    public static string ToPhonemes(string text, string voice = "en-us")
     {
-        if(!_initialized) return "";
+        if(!IsInitialized()) return "";
+
+        ESpeakNgNative.espeak_SetVoiceByName(voice);
 
         var builder = new StringBuilder();
         var clauses = Regex.Split(text, @"([\p{P}])"); // Split on punctuation
         foreach (var phrase in clauses)
         {
-            var ptrPhrase = Marshal.StringToHGlobalAuto(phrase);
-            string phonemes;
+            var bytes = Encoding.UTF8.GetBytes(phrase);
+            var ptrPhrase = Marshal.AllocHGlobal(bytes.Length + 1);
             try {
-                phonemes = ESpeakNgNative.espeak_TextToPhonemes(in ptrPhrase, EsCharMode.espeakCHARS_AUTO, 1);
-            } finally { Marshal.FreeHGlobal(ptrPhrase); }
-            builder.Append(phonemes);
-            builder.Append(' ');
+                Marshal.Copy(bytes, 0, ptrPhrase, bytes.Length);
+                Marshal.WriteByte(ptrPhrase, bytes.Length, 0);
+
+                var data = ESpeakNgNative.espeak_TextToPhonemes(ref ptrPhrase, EsCharMode.espeakCHARS_UTF8, 2);
+                if(data != IntPtr.Zero)
+                {
+                    builder.Append(Marshal.PtrToStringUTF8(data));
+                    builder.Append(' ');
+                }
+            } catch (Exception e) {
+                STLog.Log.Error(e, "ESpeakNgWrapper.ToPhonemes(): Exception caught:");
+            } finally {
+                Marshal.FreeHGlobal(ptrPhrase);
+            }
         }
         return builder.ToString();
     }

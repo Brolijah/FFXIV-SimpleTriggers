@@ -67,16 +67,17 @@ public static class STKokoroUI
             plugin.Configuration.Save();
         }
 
-        if(ImGui.Checkbox("Use espeak for phonemes?", ref plugin.Configuration.Kokoro.UseEspeak))
+        /* if(ImGui.Checkbox("Use espeak for phonemes?", ref plugin.Configuration.Kokoro.UseEspeak))
         {
             plugin.Configuration.Save();
         }
         ImGui.SameLine();
         ImGuiCustom.IconTooltip("May result in more natural voices, \nhowever if it causes issues, leave disabled.");
+        */
 
         // Show language setting -- only espeak compatible
-        if(plugin.Configuration.Kokoro.UseEspeak)
-        {
+        //if(plugin.Configuration.Kokoro.UseEspeak)
+        //{
             ImGui.SetNextItemWidth(180 * ImGuiHelpers.GlobalScale);
             using(var box = ImRaii.Combo("Language##KokoroLanguageBox", NormalizedLangName(plugin.Configuration.Kokoro.Language)))
             {
@@ -93,7 +94,7 @@ public static class STKokoroUI
                     }
                 }
             }
-        }
+        //}
 
         // Information Text
         if(!plugin.CanSpeak())

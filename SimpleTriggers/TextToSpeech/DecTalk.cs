@@ -99,7 +99,7 @@ public class DecTalk : ITextToSpeech {
         libraryTask.Dispose();
     }
 
-    public void Speak(string text, bool extra)
+    public void Speak(string text)
     {
         if(!IsInitialized()) return;
         lock(speakLock)

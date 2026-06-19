@@ -14,7 +14,7 @@ public static partial class ESpeakNgNative {
     private static bool isResolverRegistered = false;
     private static nint pHandle;
     private static string libraryPath = "";
-    public const string LibraryName = "espeak-ng-win-amd64.dll";
+    public const string LibraryName = "libespeak-ng.dll";
 
     // https://github.com/espeak-ng/espeak-ng/blob/fbe4b3764285c35b1f035cb8d09ad9fc19f71c30/src/include/espeak-ng/speak_lib.h#L198
     // returns sample rate in Hz, or -1 (EE_INTERNAL_ERROR)
@@ -46,8 +46,8 @@ public static partial class ESpeakNgNative {
 
     // https://github.com/espeak-ng/espeak-ng/blob/fbe4b3764285c35b1f035cb8d09ad9fc19f71c30/src/include/espeak-ng/speak_lib.h#L520
     // First argument is const void** textptr
-    [LibraryImport(LibraryName, StringMarshalling = StringMarshalling.Utf8)]
-    public static partial string espeak_TextToPhonemes(in nint textptr, EsCharMode textmode, int phonememode);
+    [LibraryImport(LibraryName)]
+    public static partial nint espeak_TextToPhonemes(ref nint textptr, EsCharMode textmode, int phonememode);
 
     // https://github.com/espeak-ng/espeak-ng/blob/fbe4b3764285c35b1f035cb8d09ad9fc19f71c30/src/include/espeak-ng/speak_lib.h#L606
     // Return value is EsVoice**, size is unknown, must be found by locating the null terminator

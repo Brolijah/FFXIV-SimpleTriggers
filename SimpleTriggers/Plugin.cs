@@ -62,7 +62,7 @@ public sealed class Plugin : IDalamudPlugin
         ChatLog = new Queue<string>((int)MaxLogHistoryCeiling);
         ChatListener = new ChatListener(this, ChatGui);
 
-        //ESpeakNgWrapper.Initialize(PluginInterface.AssemblyLocation.Directory?.FullName!);
+        ESpeakNgWrapper.Initialize(PluginInterface.AssemblyLocation.Directory?.FullName!);
         AudioPlayer = new AudioPlayer(Configuration.AudioOutputDevice, Configuration.AudioBackend) { BlendStreams=Configuration.BlendAudioStreams };
         SwapTTSBackend();
 
@@ -307,18 +307,7 @@ public sealed class Plugin : IDalamudPlugin
         {
             var speakTask = Task.Run(() =>
             {
-                switch (Configuration.TTSProvider)
-                {
-                    case TextToSpeechType.Kokoro:
-                        TextToSpeech?.Speak(msg, Configuration.Kokoro.UseEspeak);
-                        break;
-                    case TextToSpeechType.WindowsSystem:
-                    case TextToSpeechType.DecTalk:
-                        TextToSpeech?.Speak(msg);
-                        break;
-                    default:
-                        break;
-                }
+                TextToSpeech?.Speak(msg);
             });
             var timeoutTask = Task.Delay(5000);
             var finished = await Task.WhenAny(speakTask, timeoutTask);

@@ -3,7 +3,6 @@ using System.IO;
 using KokoroSharp;
 using KokoroSharp.Core;
 using KokoroSharp.Processing;
-using SimpleTriggers.Phonetics;
 using SimpleTriggers.Logger;
 using System.Threading.Tasks;
 using System.Diagnostics.CodeAnalysis;
@@ -20,7 +19,6 @@ public class STKokoro : ITextToSpeech
     private readonly string configPath;
     private readonly AudioPlayer audioPlayer;
     private readonly Task<KokoroModel?> modelTask;
-    private readonly Task<IPA?> ipaTask;
     private readonly CancellationTokenSource cts = new();
     private float speed = 1.0f;
     private string lang = "en-us";
@@ -31,22 +29,10 @@ public class STKokoro : ITextToSpeech
         audioPlayer.SetSourceWaveFormat(24000, 1);
         this.configPath = configPath;
         modelTask = LoadModelAsync();
-        ipaTask = LoadDictionaryAsync(Path.Join(binPath, "en_US.txt"));     
+        //ipaTask = LoadDictionaryAsync(Path.Join(binPath, "en_US.txt"));
         Tokenizer.eSpeakNGPath = Path.Join(binPath, "espeak");
         KokoroVoiceManager.LoadVoicesFromPath(Path.Join(binPath,"voices"));
         kv = KokoroVoiceManager.GetVoice("af_bella");
-    }
-
-    private async Task<IPA?> LoadDictionaryAsync(string path)
-    {
-        try
-        {
-            return new IPA(path);
-        } catch (Exception e)
-        {
-            STLog.Log.Error(e, "STKokoro.LoadDictionaryAsync(): Exception caught:");
-            return null;
-        }
     }
 
     private async Task<KokoroModel?> LoadModelAsync()
@@ -98,16 +84,6 @@ public class STKokoro : ITextToSpeech
         return model != null;
     }
 
-    private bool TryGetIPA([NotNullWhen(true)] out IPA? ipa)
-    {
-        if(ipaTask.IsCompletedSuccessfully)
-        {
-            ipa = ipaTask.Result;
-        } else { ipa = null; }
-
-        return ipa != null;
-    }
-
     private string GetModelPath()
     {
         return Path.Join(configPath, "kokoro-quant.onnx");
@@ -133,17 +109,14 @@ public class STKokoro : ITextToSpeech
         this.lang = lang;
     }
 
-    public void Speak(string message, bool extra)
+    public void Speak(string message)
     {
-        if(TryGetKokoroModel(out var model) && TryGetIPA(out var ipa))
+        if(TryGetKokoroModel(out var model))
         {
-            try
-            {
-                int[]? tokens;
-                if(extra) tokens = Tokenizer.Tokenize(message, lang);
-                else      tokens = Tokenizer.TokenizePhonemes(ipa.EnglishToIPA(message).ToCharArray());
-                //var tokens = Tokenizer.TokenizePhonemes(ESpeakNgWrapper.ToPhonemes(message).ToCharArray());
-
+            try {
+                // KokoroSharp's tokenizer is not equipped with all the sounds eSpeak can produce.
+                // this MIGHT work fine for western languages, but not eastern ones.
+                var tokens = Tokenizer.TokenizePhonemes(ESpeakNgWrapper.ToPhonemes(message, lang).ToCharArray());
                 var tokensList = SegmentationSystem.SplitToSegments(tokens, new()
                 {
                     MinFirstSegmentLength = 20,
@@ -166,17 +139,13 @@ public class STKokoro : ITextToSpeech
 
     public bool IsInitialized()
     {
-        return TryGetKokoroModel(out _) && TryGetIPA(out _);
+        return TryGetKokoroModel(out _);
     }
 
     public void Dispose()
     {
         cts.Cancel();
         cts.Dispose();
-        if(TryGetIPA(out var ipa))
-        {
-            ipa.Dispose();
-        }
         if(TryGetKokoroModel(out var model))
         {
             model.Dispose();

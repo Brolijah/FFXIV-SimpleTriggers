@@ -5,7 +5,7 @@ namespace SimpleTriggers.TextToSpeech;
 
 public interface ITextToSpeech : IDisposable
 {
-    void Speak(string message, bool extra=false);
+    void Speak(string message);
     void SetVoice(string voice);
     void SetVolume(float volume);
     void SetSpeed(float speed);

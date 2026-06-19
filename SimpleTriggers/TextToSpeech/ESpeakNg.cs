@@ -33,7 +33,7 @@ public class ESpeakNg : ITextToSpeech
         
     }
 
-    public void Speak(string message, bool extra=false)
+    public void Speak(string message)
     {
         
     }
